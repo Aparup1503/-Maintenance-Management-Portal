@@ -57,6 +57,22 @@
       "spentAt": "2026-11-04",
       "description": "Maintenance Bill",
       "id": "vC7C5NW7-JA"
+    },
+    {
+      "title": "Sonu",
+      "category": "Miscellaneous",
+      "amount": 1000,
+      "spentAt": "2026-11-05",
+      "description": "Additional Misc",
+      "id": "XkQwaBNTuHk"
+    },
+    {
+      "title": "GITA",
+      "category": "Electricity",
+      "amount": 3899,
+      "spentAt": "2026-11-05",
+      "description": "s",
+      "id": "AEMtcIUTTUY"
     }
   ],
   "bills": [

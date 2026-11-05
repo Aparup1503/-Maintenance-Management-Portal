@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -21,7 +22,7 @@ export const routes: Routes = [
   {
     path: 'expenses',
     loadComponent: () => import('./features/expenses/expenses').then((m) => m.ExpensesComponent),
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard(['Admin'])],
   },
 
   {

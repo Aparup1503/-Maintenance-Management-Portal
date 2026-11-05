@@ -13,9 +13,11 @@
       >
         Dashboard
       </a>
-      <a routerLink="/expenses" routerLinkActive="active">Expenses</a>
-      <a routerLink="/payments" routerLinkActive="active">Payments</a>
-      <a routerLink="/billing" routerLinkActive="active">Billing</a>
+      @if (authService.userRole() === 'Admin') {
+        <a routerLink="/expenses" routerLinkActive="active">Expenses</a>
+        <a routerLink="/payments" routerLinkActive="active">Payments</a>
+        <a routerLink="/billing" routerLinkActive="active">Billing</a>
+      }
       <button type="button" (click)="logout()">Logout</button>
     </nav>
   }
