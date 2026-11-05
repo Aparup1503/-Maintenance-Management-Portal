@@ -1,17 +1,24 @@
-<h1>Maintenance Management Portal</h1>
-
-<nav>
-  <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-    Dashboard
+<header class="app-header">
+  <a class="app-brand" routerLink="/dashboard" aria-label="Maintenance Management Portal home">
+    <span class="brand-mark" aria-hidden="true">M</span>
+    <span>Maintenance <strong>Portal</strong></span>
   </a>
-  |
-  <a routerLink="/expenses" routerLinkActive="active">Expenses</a>
-  |
-  <a routerLink="/payments" routerLinkActive="active">Payments</a>
-  |
-  <a routerLink="/billing" routerLinkActive="active">Billing</a>
-</nav>
 
-<hr />
+  @if (authService.isAuthenticated()) {
+    <nav aria-label="Main navigation">
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        Dashboard
+      </a>
+      <a routerLink="/expenses" routerLinkActive="active">Expenses</a>
+      <a routerLink="/payments" routerLinkActive="active">Payments</a>
+      <a routerLink="/billing" routerLinkActive="active">Billing</a>
+      <button type="button" (click)="logout()">Logout</button>
+    </nav>
+  }
+</header>
 
 <router-outlet />

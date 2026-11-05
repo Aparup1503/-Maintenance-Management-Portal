@@ -1,41 +1,89 @@
-.active {
-  color: #1d4ed8;
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.app-container {
-  padding: 24px;
-  font-family: Arial, sans-serif;
-}
-
 .app-header {
-  margin-bottom: 32px;
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 clamp(20px, 5vw, 72px);
+  border-bottom: 1px solid #e8edf5;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 4px 20px rgb(22 34 58 / 4%);
+}
 
-  h1 {
-    color: #1d4ed8;
+.app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: #17233b;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+
+  strong {
+    color: #3157c8;
+    font-weight: 750;
   }
 }
 
-.dashboard-cards {
+.brand-mark {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #446de0, #2445aa);
+  box-shadow: 0 5px 12px rgb(49 87 200 / 22%);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 750;
 }
 
-.card {
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: #fff;
+nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
-  h3 {
-    color: #555;
+  a {
+    padding: 9px 13px;
+    border-radius: 9px;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease;
   }
 
-  p {
-    font-size: 24px;
-    font-weight: bold;
+  a:hover {
+    background: #f1f5ff;
+    color: #3157c8;
+  }
+
+  a.active {
+    background: #edf2ff;
+    color: #2445aa;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    min-height: auto;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+
+  nav {
+    width: 100%;
+    gap: 2px;
+    overflow-x: auto;
+
+    a {
+      padding: 8px 10px;
+      white-space: nowrap;
+    }
   }
 }

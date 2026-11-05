@@ -141,6 +141,18 @@
   font-size: 0.9rem;
 }
 
+.feedback-success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.feedback-error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 .payment-error {
   margin-top: 14px;
   border-color: #fecaca;

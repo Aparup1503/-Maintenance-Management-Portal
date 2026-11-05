@@ -27,7 +27,13 @@
 
   <!-- Generation Feedback -->
   @if (message()) {
-    <div class="feedback-message" role="status">
+    <div
+      class="feedback-message"
+      [class.feedback-success]="messageType() === 'success'"
+      [class.feedback-error]="messageType() === 'error'"
+      role="status"
+      [attr.aria-live]="messageType() === 'error' ? 'assertive' : 'polite'"
+    >
       {{ message() }}
     </div>
   }
@@ -101,7 +107,7 @@
       <h2>Record Payment</h2>
 
       @if (paymentError()) {
-        <div class="payment-error">
+        <div class="payment-error" role="alert">
           {{ paymentError() }}
         </div>
       }

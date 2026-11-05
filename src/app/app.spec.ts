@@ -16,10 +16,11 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', () => {
+  it('should render the portal brand', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Maintenance Management Portal');
+    expect(compiled.querySelector('.app-brand')?.textContent).toContain('Maintenance');
+    expect(compiled.querySelector('.app-brand')?.textContent).toContain('Portal');
   });
 });

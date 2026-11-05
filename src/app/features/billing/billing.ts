@@ -4,6 +4,7 @@ import { MaintenanceDataService } from '../../core/services/maintenance-data.ser
 import { PaymentMode } from '../../shared/models/payment.model';
 
 type BillingStatusFilter = 'All' | 'Paid' | 'Pending' | 'Overdue';
+type FeedbackType = 'success' | 'info' | 'error';
 
 @Component({
   selector: 'app-billing',
@@ -23,6 +24,7 @@ export class BillingComponent {
 
   // Feedback message after bill generation
   readonly message = signal('');
+  readonly messageType = signal<FeedbackType>('info');
 
   //Billing related signals
   readonly selectedBillId = signal<number | null>(null);
@@ -81,6 +83,7 @@ export class BillingComponent {
     const input = event.target as HTMLInputElement;
     this.selectedMonth.set(input.value);
     this.message.set('');
+    this.messageType.set('info');
   }
 
   onStatusChange(event: Event): void {
@@ -93,6 +96,7 @@ export class BillingComponent {
 
     if (!month) {
       this.message.set('Please select a billing month.');
+      this.messageType.set('error');
       return;
     }
 
@@ -105,12 +109,15 @@ export class BillingComponent {
         this.message.set(
           'No new bills generated. Bills may already exist for this month, or there are no residents.',
         );
+        this.messageType.set('info');
       } else {
         this.message.set(`${generatedCount} maintenance bill(s) generated successfully.`);
+        this.messageType.set('success');
       }
     } catch (error) {
       console.error('Bill generation failed:', error);
       this.message.set('Unable to generate bills. Please check the selected month.');
+      this.messageType.set('error');
     }
   }
 
@@ -129,6 +136,7 @@ export class BillingComponent {
     const input = event.target as HTMLInputElement;
     this.paymentAmount.set(Number(input.value));
     this.message.set('');
+    this.messageType.set('info');
   }
 
   onPaymentModeChange(event: Event): void {
@@ -148,6 +156,7 @@ export class BillingComponent {
       this.data.recordBillPayment(billId, this.paymentAmount(), this.selectedPaymentMode());
 
       this.message.set('Payment recorded successfully.');
+      this.messageType.set('success');
 
       this.cancelPayment();
     } catch (error) {
