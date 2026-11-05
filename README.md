@@ -1,5 +1,7 @@
 # MaintenanceManagementPortal
 
+An Angular portal for managing maintenance expenses, bills, and payments.
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.3.
 
 ## Development server
