@@ -1,0 +1,211 @@
+<section class="dashboard-page">
+  <header class="page-header">
+    <div>
+      <h1>Maintenance Dashboard</h1>
+      <p>Overview of society maintenance and financial activity.</p>
+    </div>
+  </header>
+
+  <section class="dashboard-cards">
+    <!-- Total Collection -->
+    <article class="dashboard-card">
+      <h3>Total Collection</h3>
+
+      <h2>
+        {{ totalCollection() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+      </h2>
+
+      <p>Total maintenance payments received.</p>
+    </article>
+
+    <!-- Total Billed -->
+    <article class="dashboard-card">
+      <h3>Total Billed</h3>
+
+      <h2>
+        {{ totalBilled() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+      </h2>
+
+      <p>Total maintenance amount generated.</p>
+    </article>
+
+    <!-- Total Expenses -->
+    <article class="dashboard-card">
+      <h3>Total Expenses</h3>
+
+      <h2>
+        {{ totalExpenses() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+      </h2>
+
+      <p>Total society expenses recorded.</p>
+    </article>
+
+    <!-- Outstanding -->
+    <article class="dashboard-card">
+      <h3>Outstanding Amount</h3>
+
+      <h2>
+        {{ totalOutstanding() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+      </h2>
+
+      <p>Pending maintenance collection.</p>
+    </article>
+
+    <!-- Available Balance -->
+    <article class="dashboard-card">
+      <h3>Available Balance</h3>
+
+      <h2>
+        {{ availableBalance() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+      </h2>
+
+      <p>Collection minus total expenses.</p>
+    </article>
+
+    <!-- Collection Percentage -->
+    <article class="dashboard-card">
+      <h3>Collection Percentage</h3>
+
+      <h2>
+        {{ collectionPercentage() | percent: '1.0-2' }}
+      </h2>
+
+      <p>Percentage of billed amount collected.</p>
+    </article>
+  </section>
+
+  <!-- Latest Payment -->
+  <section class="latest-payment">
+    <h2>Latest Payment</h2>
+
+    @if (lastPaymentDate()) {
+      <p>
+        Last payment received on:
+
+        <strong>
+          {{ lastPaymentDate() | date: 'dd MMM yyyy, h:mm a' }}
+        </strong>
+      </p>
+    } @else {
+      <p>No payments have been recorded yet.</p>
+    }
+  </section>
+
+  <section class="recent-activity">
+    <!-- Recent Payments -->
+    <div class="activity-card">
+      <div class="activity-header">
+        <div>
+          <h2>Recent Payments</h2>
+          <p>Latest maintenance payments received.</p>
+        </div>
+      </div>
+
+      @if (recentPayments().length > 0) {
+        <div class="activity-list">
+          @for (payment of recentPayments(); track payment.id) {
+            <div class="activity-item">
+              <div>
+                <strong>
+                  {{ getResidentName(payment.residentId) }}
+                </strong>
+
+                <p>Flat {{ getFlatNumber(payment.residentId) }} · {{ payment.paymentMode }}</p>
+              </div>
+
+              <div class="activity-amount">
+                <strong>
+                  {{ payment.amount | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+                </strong>
+
+                <span>
+                  {{ payment.spentAt | date: 'dd MMM, h:mm a' }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-activity">No payments recorded yet.</div>
+      }
+    </div>
+
+    <!-- Recent Expenses -->
+    <div class="activity-card">
+      <div class="activity-header">
+        <div>
+          <h2>Recent Expenses</h2>
+          <p>Latest society expenses recorded.</p>
+        </div>
+      </div>
+
+      @if (recentExpenses().length > 0) {
+        <div class="activity-list">
+          @for (expense of recentExpenses(); track expense.id) {
+            <div class="activity-item">
+              <div>
+                <strong>
+                  {{ expense.category }}
+                </strong>
+
+                <p>
+                  {{ expense.description }}
+                </p>
+              </div>
+
+              <div class="activity-amount expense-amount">
+                <strong>
+                  {{ expense.amount | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+                </strong>
+
+                <span>
+                  {{ expense.spentAt | date: 'dd MMM yyyy' }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-activity">No expenses recorded yet.</div>
+      }
+    </div>
+  </section>
+
+  <app-monthly-analytics [summaries]="monthlyFinancialSummary()" />
+  <section class="dashboard-cards">
+    <app-financial-summary-card
+      title="Total Collection"
+      [amount]="totalCollection()"
+      description="Total maintenance payments received."
+      type="income"
+    />
+
+    <app-financial-summary-card
+      title="Total Billed"
+      [amount]="totalBilled()"
+      description="Total maintenance amount generated."
+      type="neutral"
+    />
+
+    <app-financial-summary-card
+      title="Total Expenses"
+      [amount]="totalExpenses()"
+      description="Total society expenses recorded."
+      type="expense"
+    />
+
+    <app-financial-summary-card
+      title="Outstanding Amount"
+      [amount]="totalOutstanding()"
+      description="Pending maintenance collection."
+      type="neutral"
+    />
+
+    <app-financial-summary-card
+      title="Available Balance"
+      [amount]="availableBalance()"
+      description="Collection minus total expenses."
+      type="income"
+    />
+  </section>
+</section>

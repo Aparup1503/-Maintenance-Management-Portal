@@ -1,0 +1,27 @@
+<section class="financial-chart">
+  <div class="chart-header">
+    <div>
+      <h3>{{ title() }}</h3>
+
+      <p>Monthly comparison of collection, expenses and balance.</p>
+    </div>
+
+    <div class="chart-type-selector">
+      <button type="button" [class.active]="chartType() === 'bar'" (click)="setChartType('bar')">
+        Bar Chart
+      </button>
+
+      <button type="button" [class.active]="chartType() === 'line'" (click)="setChartType('line')">
+        Line Chart
+      </button>
+    </div>
+  </div>
+
+  @if (chartData().labels.length > 0) {
+    <div class="financial-chart-container">
+      <canvas #financialChart></canvas>
+    </div>
+  } @else {
+    <div class="empty-chart-state">No financial data available to display.</div>
+  }
+</section>

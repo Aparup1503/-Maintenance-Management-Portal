@@ -1,0 +1,165 @@
+.billing-page {
+  --billing-ink: #17233b;
+  --billing-muted: #64748b;
+  --billing-border: #e2e8f0;
+  --billing-surface: #fff;
+  --billing-primary: #3157c8;
+
+  display: grid;
+  gap: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 28px;
+  color: var(--billing-ink);
+}
+
+.page-header,
+.billing-controls,
+.bills-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.page-header p,
+.bills-section-header p {
+  margin: 7px 0 0;
+  color: var(--billing-muted);
+  font-size: 0.94rem;
+}
+
+.billing-controls,
+.payment-form,
+.bills-section {
+  padding: 22px;
+  border: 1px solid var(--billing-border);
+  border-radius: 16px;
+  background: var(--billing-surface);
+  box-shadow: 0 5px 18px rgb(23 35 59 / 4%);
+}
+
+.month-selector,
+.status-filter,
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.month-selector label,
+.status-filter label,
+.form-group label {
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.billing-page input,
+.billing-page select {
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--billing-ink);
+  font: inherit;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.billing-page input:focus,
+.billing-page select:focus {
+  border-color: var(--billing-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(49 87 200 / 14%);
+}
+
+.generate-button,
+.record-payment-button,
+.save-payment-button,
+.cancel-payment-button {
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.generate-button,
+.save-payment-button,
+.record-payment-button {
+  background: var(--billing-primary);
+  color: #fff;
+  box-shadow: 0 3px 8px rgb(49 87 200 / 18%);
+}
+
+.generate-button:hover,
+.save-payment-button:hover,
+.record-payment-button:hover {
+  background: #2445aa;
+  box-shadow: 0 5px 12px rgb(49 87 200 / 24%);
+  transform: translateY(-1px);
+}
+
+.cancel-payment-button {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.cancel-payment-button:hover {
+  background: #e2e8f0;
+}
+
+.billing-page button:focus-visible {
+  outline: 3px solid rgb(49 87 200 / 35%);
+  outline-offset: 2px;
+}
+
+.feedback-message,
+.payment-error {
+  padding: 12px 15px;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.9rem;
+}
+
+.payment-error {
+  margin-top: 14px;
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.billing-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.summary-card {
+  position: relative;
+  overflow: hidden;
+  padding: 21px;
+  border: 1px solid var(--billing-border);
+  border-radius: 16px;
+  background: var(--billing-surface);
+  box-shadow: 0 5px 18px rgb(23 35 59 / 4%);
+}

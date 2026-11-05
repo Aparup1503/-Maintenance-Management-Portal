@@ -1,0 +1,265 @@
+<section class="billing-page">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div>
+      <h1>Monthly Maintenance Billing</h1>
+      <p>Generate bills and track flat-wise maintenance collections.</p>
+    </div>
+  </header>
+
+  <!-- Billing Controls -->
+  <section class="billing-controls">
+    <div class="month-selector">
+      <label for="billingMonth">Billing Month</label>
+
+      <input
+        id="billingMonth"
+        type="month"
+        [value]="selectedMonth()"
+        (change)="onMonthChange($event)"
+      />
+    </div>
+
+    <button type="button" class="generate-button" (click)="generateBills()">
+      Generate Monthly Bills
+    </button>
+  </section>
+
+  <!-- Generation Feedback -->
+  @if (message()) {
+    <div class="feedback-message" role="status">
+      {{ message() }}
+    </div>
+  }
+
+  <!-- Billing Summary -->
+  <section class="billing-summary">
+    <article class="summary-card billed-card">
+      <div class="summary-card-header">
+        <span>Total Billed</span>
+        <span class="summary-icon">₹</span>
+      </div>
+
+      <h2>
+        {{ totalBilled() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+      </h2>
+
+      <p>{{ monthlyBills().length }} bills generated</p>
+    </article>
+
+    <article class="summary-card collected-card">
+      <div class="summary-card-header">
+        <span>Total Collected</span>
+        <span class="summary-icon">✓</span>
+      </div>
+
+      <h2>
+        {{ totalCollected() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+      </h2>
+
+      <p>{{ paidCount() }} fully paid bills</p>
+    </article>
+
+    <article class="summary-card outstanding-card">
+      <div class="summary-card-header">
+        <span>Outstanding</span>
+        <span class="summary-icon">!</span>
+      </div>
+
+      <h2>
+        {{ totalOutstanding() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+      </h2>
+
+      <p>{{ pendingCount() + overdueCount() }} unpaid bills</p>
+    </article>
+  </section>
+
+  <!-- Billing Status Summary -->
+  <section class="billing-status-summary">
+    <div class="status-item">
+      <span class="status-dot paid-dot"></span>
+      <span>Paid</span>
+      <strong>{{ paidCount() }}</strong>
+    </div>
+
+    <div class="status-item">
+      <span class="status-dot pending-dot"></span>
+      <span>Pending</span>
+      <strong>{{ pendingCount() }}</strong>
+    </div>
+
+    <div class="status-item">
+      <span class="status-dot overdue-dot"></span>
+      <span>Overdue</span>
+      <strong>{{ overdueCount() }}</strong>
+    </div>
+  </section>
+
+  <!--Redord Payment Workflow -->
+  @if (selectedBillId()) {
+    <section class="payment-form">
+      <h2>Record Payment</h2>
+
+      @if (paymentError()) {
+        <div class="payment-error">
+          {{ paymentError() }}
+        </div>
+      }
+
+      <div class="payment-form-grid">
+        <div class="form-group">
+          <label for="paymentAmount"> Payment Amount </label>
+
+          <input
+            id="paymentAmount"
+            type="number"
+            min="1"
+            [value]="paymentAmount()"
+            (input)="onPaymentAmountChange($event)"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="paymentMode"> Payment Mode </label>
+
+          <select
+            id="paymentMode"
+            [value]="selectedPaymentMode()"
+            (change)="onPaymentModeChange($event)"
+          >
+            <option value="UPI">UPI</option>
+            <option value="Cash">Cash</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="payment-actions">
+        <button type="button" class="save-payment-button" (click)="submitPayment()">
+          Save Payment
+        </button>
+
+        <button type="button" class="cancel-payment-button" (click)="cancelPayment()">
+          Cancel
+        </button>
+      </div>
+    </section>
+  }
+  <!-- Bills Table Section -->
+  <section class="bills-section">
+    <div class="bills-section-header">
+      <div>
+        <h2>Flat-wise Billing Records</h2>
+        <p>View maintenance bills for the selected month.</p>
+      </div>
+
+      <div class="status-filter">
+        <label for="statusFilter">Filter by status</label>
+
+        <select id="statusFilter" [value]="selectedStatus()" (change)="onStatusChange($event)">
+          <option value="All">All Statuses</option>
+          <option value="Paid">Paid</option>
+          <option value="Pending">Pending</option>
+          <option value="Overdue">Overdue</option>
+        </select>
+      </div>
+    </div>
+
+    @if (filteredBills().length > 0) {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Flat Number</th>
+              <th>Resident</th>
+              <th>Billing Month</th>
+              <th>Bill Amount</th>
+              <th>Paid Amount</th>
+              <th>Outstanding</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (bill of filteredBills(); track bill.id) {
+              <tr>
+                <td>
+                  <strong>{{ bill.flatNumber }}</strong>
+                </td>
+
+                <td>{{ bill.residentName }}</td>
+
+                <td>{{ bill.month }}</td>
+
+                <td>
+                  {{ bill.amount | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+                </td>
+
+                <td class="paid-amount">
+                  {{ bill.paidAmount | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+                </td>
+
+                <td class="outstanding-amount">
+                  {{
+                    bill.amount - bill.paidAmount | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN'
+                  }}
+                </td>
+
+                <td>{{ bill.dueDate | date: 'dd MMM yyyy' }}</td>
+
+                <td>
+                  @switch (bill.status) {
+                    @case ('Paid') {
+                      <span class="status-badge paid">Paid</span>
+                    }
+
+                    @case ('Pending') {
+                      <span class="status-badge pending">Pending</span>
+                    }
+
+                    @case ('Overdue') {
+                      <span class="status-badge overdue">Overdue</span>
+                    }
+
+                    @default {
+                      <span class="status-badge">Unknown</span>
+                    }
+                  }
+                </td>
+
+                <td>
+                  @if (bill.status !== 'Paid') {
+                    <button
+                      type="button"
+                      class="record-payment-button"
+                      (click)="recordPayment(bill.id)"
+                    >
+                      Record Payment
+                    </button>
+                  } @else {
+                    <span class="completed-label">Completed</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <h3>No billing records found</h3>
+
+        @if (monthlyBills().length === 0) {
+          <p>
+            No bills have been generated for this month. Select a month and click Generate Monthly
+            Bills.
+          </p>
+        } @else {
+          <p>No bills match the selected status filter. Try selecting All Statuses.</p>
+        }
+      </div>
+    }
+  </section>
+</section>

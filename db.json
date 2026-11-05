@@ -1,0 +1,98 @@
+{
+  "residents": [
+    {
+      "id": "1",
+      "name": "Rahul Sharma",
+      "flatNumber": "A-101",
+      "phone": "9876543210",
+      "email": "rahul.sharma@example.com",
+      "status": "Active"
+    },
+    {
+      "id": "2",
+      "name": "Priya Das",
+      "flatNumber": "A-102",
+      "phone": "9876543211",
+      "email": "priya.das@example.com",
+      "status": "Active"
+    },
+    {
+      "id": "3",
+      "name": "Amit Kumar",
+      "flatNumber": "B-201",
+      "phone": "9876543212",
+      "email": "amit.kumar@example.com",
+      "status": "Inactive"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "1",
+      "title": "Common Area Electricity",
+      "category": "Electricity",
+      "amount": 12000,
+      "spentAt": "2026-10-05",
+      "description": "Common area electricity bill"
+    },
+    {
+      "id": "2",
+      "title": "Security Service",
+      "category": "Security",
+      "amount": 25000,
+      "spentAt": "2026-10-10",
+      "description": "Monthly security service payment"
+    },
+    {
+      "id": "3",
+      "title": "Lift Maintenance",
+      "category": "Maintenance",
+      "amount": 8000,
+      "spentAt": "2026-10-15",
+      "description": "Lift maintenance and servicing"
+    },
+    {
+      "title": "Appu",
+      "category": "Electricity",
+      "amount": 3000,
+      "spentAt": "2026-11-04",
+      "description": "Maintenance Bill",
+      "id": "vC7C5NW7-JA"
+    }
+  ],
+  "bills": [
+    {
+      "id": "1",
+      "flatNumber": "A-101",
+      "residentName": "Rahul Sharma",
+      "month": "October 2026",
+      "amount": 3000,
+      "status": "Paid"
+    },
+    {
+      "id": "2",
+      "flatNumber": "A-102",
+      "residentName": "Priya Das",
+      "month": "October 2026",
+      "amount": 3000,
+      "status": "Pending"
+    },
+    {
+      "id": "3",
+      "flatNumber": "B-201",
+      "residentName": "Amit Kumar",
+      "month": "October 2026",
+      "amount": 3000,
+      "status": "Overdue"
+    }
+  ],
+  "payments": [
+    {
+      "id": "1",
+      "billId": "1",
+      "amount": 3000,
+      "paymentDate": "2026-10-03",
+      "paymentMethod": "UPI"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

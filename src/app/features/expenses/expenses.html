@@ -1,0 +1,274 @@
+@if (isLoading()) {
+  <div class="loading-state">Loading expenses...</div>
+} @else if (errorMessage()) {
+  <div class="error-state">
+    {{ errorMessage() }}
+  </div>
+} @else {
+  <section class="expenses-page">
+    <!-- Page Header -->
+    <header class="page-header">
+      <div>
+        <h1>Expense Management</h1>
+        <p>Track and manage your society's monthly expenses.</p>
+      </div>
+
+      @if (isAdmin()) {
+        <button type="button" class="add-expense-button" (click)="openAddExpenseForm()">
+          + Add New Expense
+        </button>
+      }
+    </header>
+
+    <!-- Expense Summary -->
+    <section class="expense-summary">
+      <div class="summary-item">
+        <span>Total Expenses</span>
+        <h2>
+          {{ totalExpenses() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+        </h2>
+      </div>
+
+      <div class="summary-item">
+        <span>Matching Records</span>
+        <h2>{{ filteredExpenses().length }}</h2>
+      </div>
+    </section>
+
+    <!-- Add / Edit Expense Form -->
+    @if (showAddForm()) {
+      <section class="expense-form-container">
+        <div class="form-header">
+          <div>
+            <h2>
+              {{ editingExpenseId() !== null ? 'Edit Expense' : 'Add New Expense' }}
+            </h2>
+            <p>Enter the expense details below.</p>
+          </div>
+
+          <button
+            type="button"
+            class="close-button"
+            aria-label="Close expense form"
+            (click)="closeAddExpenseForm()"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form [formGroup]="expenseForm" (ngSubmit)="onSubmitExpense()" novalidate>
+          <div class="form-grid">
+            <!-- Expense Title -->
+            <div class="form-group">
+              <label for="expenseTitle">Expense Title *</label>
+
+              <input
+                id="expenseTitle"
+                type="text"
+                formControlName="title"
+                placeholder="e.g. DG Servicing"
+              />
+
+              @if (expenseForm.controls.title.touched && expenseForm.controls.title.invalid) {
+                <small class="error-message">
+                  @if (expenseForm.controls.title.errors?.['required']) {
+                    Expense title is required.
+                  } @else if (expenseForm.controls.title.errors?.['minlength']) {
+                    Minimum 3 characters required.
+                  } @else if (expenseForm.controls.title.errors?.['maxlength']) {
+                    Maximum 100 characters allowed.
+                  }
+                </small>
+              }
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+              <label for="expenseCategory">Category *</label>
+
+              <select id="expenseCategory" formControlName="category">
+                @for (category of expenseCategories; track category) {
+                  <option [value]="category">
+                    {{ category }}
+                  </option>
+                }
+              </select>
+
+              @if (expenseForm.controls.category.touched && expenseForm.controls.category.invalid) {
+                <small class="error-message"> Please select a category. </small>
+              }
+            </div>
+
+            <!-- Amount -->
+            <div class="form-group">
+              <label for="expenseAmount">Amount (₹) *</label>
+
+              <input
+                id="expenseAmount"
+                type="number"
+                formControlName="amount"
+                min="1"
+                placeholder="Enter amount"
+              />
+
+              @if (expenseForm.controls.amount.touched && expenseForm.controls.amount.invalid) {
+                <small class="error-message">
+                  @if (expenseForm.controls.amount.errors?.['required']) {
+                    Amount is required.
+                  } @else if (expenseForm.controls.amount.errors?.['min']) {
+                    Amount must be greater than zero.
+                  }
+                </small>
+              }
+            </div>
+
+            <!-- Expense Date -->
+            <div class="form-group">
+              <label for="expenseDate">Expense Date *</label>
+
+              <input id="expenseDate" type="date" formControlName="spentAt" />
+
+              @if (expenseForm.controls.spentAt.touched && expenseForm.controls.spentAt.invalid) {
+                <small class="error-message"> Expense date is required. </small>
+              }
+            </div>
+
+            <!-- Description -->
+            <div class="form-group full-width">
+              <label for="expenseDescription">Description</label>
+
+              <textarea
+                id="expenseDescription"
+                formControlName="description"
+                rows="3"
+                placeholder="Enter additional details..."
+              ></textarea>
+
+              @if (
+                expenseForm.controls.description.touched && expenseForm.controls.description.invalid
+              ) {
+                <small class="error-message"> Maximum 250 characters allowed. </small>
+              }
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="button" class="cancel-button" (click)="closeAddExpenseForm()">
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="save-button"
+              [disabled]="expenseForm.invalid || isSaving()"
+            >
+              @if (isSaving()) {
+                Saving...
+              } @else {
+                {{ editingExpenseId() !== null ? 'Update Expense' : 'Save Expense' }}
+              }
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <!-- Search and Filter -->
+    <section class="expense-toolbar">
+      <div class="search-box">
+        <input
+          type="search"
+          placeholder="Search by expense name or category..."
+          aria-label="Search expenses"
+          [value]="searchText()"
+          (input)="onSearch($event)"
+        />
+      </div>
+
+      <div class="category-filter">
+        <select
+          aria-label="Filter expenses by category"
+          [value]="selectedCategory()"
+          (change)="selectedCategory.set($any($event.target).value)"
+        >
+          @for (category of categories(); track category) {
+            <option [value]="category">
+              {{ category === 'All' ? 'All Categories' : category }}
+            </option>
+          }
+        </select>
+      </div>
+    </section>
+
+    <!-- Expense List -->
+    <section class="expense-list-section">
+      <div class="section-header">
+        <h2>Expense Records</h2>
+        <span>{{ filteredExpenses().length }} records</span>
+      </div>
+
+      <div class="expense-list">
+        @for (expense of filteredExpenses(); track expense.id) {
+          <article class="expense-card">
+            <div class="expense-card-content">
+              <div class="expense-card-header">
+                <div class="expense-details">
+                  <h3>{{ expense.title }}</h3>
+
+                  <span class="expense-category">
+                    {{ expense.category }}
+                  </span>
+                </div>
+
+                <h3 class="expense-amount">
+                  {{ expense.amount | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+                </h3>
+              </div>
+
+              <div class="expense-meta">
+                <span>
+                  <strong>Expense Date:</strong>
+                  {{ expense.spentAt | date: 'dd MMM yyyy' }}
+                </span>
+              </div>
+
+              @if (expense.description) {
+                <p class="expense-description">
+                  {{ expense.description }}
+                </p>
+              }
+            </div>
+
+            <!-- Expense Actions -->
+            @if (isAdmin()) {
+              <div class="expense-actions">
+                <button type="button" class="edit-button" (click)="editExpense(expense)">
+                  Edit
+                </button>
+
+                <button
+                  type="button"
+                  class="delete-button"
+                  (click)="deleteExpense(expense)"
+                  [disabled]="deletingExpenseId() === expense.id"
+                >
+                  @if (deletingExpenseId() === expense.id) {
+                    Deleting...
+                  } @else {
+                    Delete
+                  }
+                </button>
+              </div>
+            }
+          </article>
+        } @empty {
+          <div class="empty-state">
+            <h3>No expenses found</h3>
+            <p>No expense records match your search or selected category.</p>
+          </div>
+        }
+      </div>
+    </section>
+  </section>
+}

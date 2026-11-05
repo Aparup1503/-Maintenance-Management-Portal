@@ -1,0 +1,112 @@
+.monthly-analytics {
+  margin-top: 24px;
+  padding: 22px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 0 0 6px;
+    font-size: 19px;
+  }
+
+  p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 13px;
+  }
+}
+
+.analytics-table-wrapper {
+  overflow-x: auto;
+}
+
+.analytics-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 14px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    font-size: 14px;
+  }
+
+  th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-weight: 600;
+  }
+}
+
+.positive-amount {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.negative-amount {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.empty-state {
+  padding: 32px;
+  text-align: center;
+  color: #6b7280;
+}
+
+// .chart-preview {
+//   margin-top: 30px;
+//   padding-top: 20px;
+//   border-top: 1px solid #e5e7eb;
+
+//   h3 {
+//     margin: 0 0 20px;
+//     font-size: 17px;
+//   }
+// }
+
+// .chart-bars {
+//   display: flex;
+//   flex-direction: column;
+//   gap: 16px;
+// }
+
+// .chart-row {
+//   padding: 16px;
+//   border-radius: 8px;
+//   background: #f8fafc;
+// }
+
+// .chart-label {
+//   margin-bottom: 10px;
+//   font-weight: 600;
+// }
+
+// .chart-values {
+//   display: flex;
+//   flex-wrap: wrap;
+//   gap: 16px;
+// }
+
+// .chart-value {
+//   font-size: 14px;
+// }
+
+// .collection {
+//   color: #15803d;
+// }
+
+// .expenses {
+//   color: #dc2626;
+// }
+
+// .balance {
+//   color: #2563eb;
+// }

@@ -1,0 +1,100 @@
+<section class="monthly-analytics">
+  <div class="section-title">
+    <div>
+      <h2>Monthly Financial Summary</h2>
+
+      <p>Collection, expenses and available balance by month.</p>
+    </div>
+  </div>
+
+  @if (summaries().length > 0) {
+    <div class="analytics-table-wrapper">
+      <table class="analytics-table">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Collection</th>
+            <th>Expenses</th>
+            <th>Balance</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (summary of summaries(); track summary.month) {
+            <tr>
+              <td>
+                <strong>{{ summary.month }}</strong>
+              </td>
+
+              <td class="positive-amount">
+                {{ summary.collection | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+              </td>
+
+              <td class="negative-amount">
+                {{ summary.expenses | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+              </td>
+
+              <td
+                [class.positive-amount]="summary.balance >= 0"
+                [class.negative-amount]="summary.balance < 0"
+              >
+                {{ summary.balance | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="empty-state">No financial data available yet.</div>
+  }
+  <app-dashboard-card
+    title="Financial Overview"
+    subtitle="Monthly collection, expenses and balance"
+  >
+    <!--
+    This content is projected into the card-actions slot.
+  -->
+    <button card-actions type="button" class="refresh-button" (click)="refreshAnalytics()">
+      Refresh
+    </button>
+
+    <!--
+    This content is projected into the default content slot.
+  -->
+    <app-financial-chart
+      [chartData]="chartData()"
+      (chartTypeChanged)="onChartTypeChanged($event)"
+    />
+  </app-dashboard-card>
+  <!-- <section class="chart-preview">
+    <h3>Financial Overview</h3>
+
+    <div class="chart-bars">
+      @for (label of chartData().labels; track label; let index = $index) {
+        <div class="chart-row">
+          <div class="chart-label">
+            {{ label }}
+          </div>
+
+          <div class="chart-values">
+            <div class="chart-value collection">
+              Collection:
+              {{ chartData().collection[index] | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+            </div>
+
+            <div class="chart-value expenses">
+              Expenses:
+              {{ chartData().expenses[index] | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+            </div>
+
+            <div class="chart-value balance">
+              Balance:
+              {{ chartData().balance[index] | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </section> -->
+</section>

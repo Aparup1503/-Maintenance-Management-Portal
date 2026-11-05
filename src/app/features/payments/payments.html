@@ -1,0 +1,173 @@
+<section class="payments-page">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div>
+      <h1>Payment History</h1>
+      <p>Track and monitor all maintenance payment transactions.</p>
+    </div>
+  </header>
+
+  <!-- Summary Cards -->
+  <section class="payment-summary">
+    <article class="summary-card">
+      <span class="card-label">Total Collection</span>
+
+      <h2>
+        {{ totalCollection() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+      </h2>
+
+      <p>Based on selected filters</p>
+    </article>
+
+    <article class="summary-card">
+      <span class="card-label">Transactions</span>
+
+      <h2>{{ totalTransactions() }}</h2>
+
+      <p>Payment records found</p>
+    </article>
+
+    <article class="summary-card">
+      <span class="card-label">Average Payment</span>
+
+      <h2>
+        {{ averagePayment() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+      </h2>
+
+      <p>Average per transaction</p>
+    </article>
+  </section>
+
+  <!-- Filters -->
+  <section class="filters-section">
+    <div class="search-box">
+      <label for="paymentSearch"> Search Resident or Flat </label>
+
+      <input
+        id="paymentSearch"
+        type="text"
+        placeholder="Search by name or flat number"
+        [value]="searchTerm()"
+        (input)="onSearchChange($event)"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label for="paymentMode">Payment Mode</label>
+
+      <select id="paymentMode" [value]="selectedPayment()" (change)="onPaymentModeChange($event)">
+        <option value="All">All Modes</option>
+        <option value="UPI">UPI</option>
+        <option value="Cash">Cash</option>
+        <option value="Bank Transfer">Bank Transfer</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="paymentMonth">Month</label>
+
+      <select id="paymentMonth" [value]="selectedMonth()" (change)="onMonthChange($event)">
+        <option value="All">All Months</option>
+
+        @for (month of availableMonths(); track month) {
+          <option [value]="month">
+            {{ month }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="paymentStatus">Status</label>
+
+      <select id="paymentStatus" [value]="selectedStatus()" (change)="onStatusChange($event)">
+        <option value="All">All Statuses</option>
+        <option value="Paid">Paid</option>
+        <option value="Pending">Pending</option>
+      </select>
+    </div>
+
+    <button type="button" class="clear-button" (click)="clearFilters()">Clear Filters</button>
+  </section>
+
+  <!-- Payment Table -->
+  <section class="payments-table-section">
+    <div class="section-header">
+      <div>
+        <h2>Transactions</h2>
+        <p>
+          Showing {{ filteredPayments().length }}
+          payment record(s).
+        </p>
+      </div>
+    </div>
+
+    @if (filteredPayments().length > 0) {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Flat</th>
+              <th>Resident</th>
+              <th>Billing Month</th>
+              <th>Amount</th>
+              <th>Payment Mode</th>
+              <th>Payment Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (payment of filteredPayments(); track payment.id) {
+              <tr>
+                <td>
+                  <strong>
+                    {{ getFlatNumber(payment.residentId) }}
+                  </strong>
+                </td>
+
+                <td>
+                  {{ getResidentName(payment.residentId) }}
+                </td>
+
+                <td>{{ payment.month }}</td>
+
+                <td class="amount">
+                  {{ payment.amount | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+                </td>
+
+                <td>
+                  @if (payment.paymentMode) {
+                    <span class="payment-mode">{{ payment.paymentMode }}</span>
+                  } @else {
+                    <span>—</span>
+                  }
+                </td>
+
+                <td>
+                  @if (payment.paymentDate) {
+                    {{ payment.paymentDate | date: 'dd MMM yyyy, h:mm a' }}
+                  } @else {
+                    <span>—</span>
+                  }
+                </td>
+
+                <td>
+                  <span class="status-badge" [class.paid]="payment.status === 'Paid'"
+                    [class.pending]="payment.status === 'Pending'">
+                    {{ payment.status }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <h3>No payments found</h3>
+        <p>Try changing your filters or record a new payment from the Billing page.</p>
+      </div>
+    }
+  </section>
+</section>

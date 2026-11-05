@@ -1,0 +1,15 @@
+<article
+  class="summary-card"
+  [class.income]="type() === 'income'"
+  [class.expense]="type() === 'expense'"
+>
+  <h3>{{ title() }}</h3>
+
+  <h2>
+    {{ amount() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+  </h2>
+
+  @if (description()) {
+    <p>{{ description() }}</p>
+  }
+</article>

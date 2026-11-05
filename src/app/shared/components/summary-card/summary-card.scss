@@ -1,0 +1,59 @@
+:host {
+  display: block;
+}
+
+.card-content {
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+
+  &.is-selected {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px #dbeafe;
+  }
+
+  .card-title {
+    color: #64748b;
+    font-size: 14px;
+  }
+
+  h2 {
+    font-size: 26px;
+    font-weight: 700;
+  }
+
+  .status {
+    color: #16a34a;
+    font-size: 12px;
+  }
+
+  .view-details-button {
+    display: block;
+    margin-top: 12px;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: #1c2332;
+    color: #fff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      box-shadow 150ms ease;
+
+    &:hover {
+      background: #1d4ed8;
+    }
+
+    &:focus-visible {
+      outline: 3px solid #93c5fd;
+      outline-offset: 2px;
+    }
+  }
+}

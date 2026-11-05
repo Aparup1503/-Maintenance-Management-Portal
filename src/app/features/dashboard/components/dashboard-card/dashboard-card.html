@@ -1,0 +1,27 @@
+<section class="dashboard-card">
+  <header class="dashboard-card-header">
+    <div class="dashboard-card-title">
+      <h2>{{ title() }}</h2>
+
+      @if (subtitle()) {
+        <p>{{ subtitle() }}</p>
+      }
+    </div>
+
+    <!--
+      This slot receives content marked with the
+      card-actions attribute from the parent component.
+    -->
+    <div class="dashboard-card-actions">
+      <ng-content select="[card-actions]"></ng-content>
+    </div>
+  </header>
+
+  <div class="dashboard-card-content">
+    <!--
+      The default content projection slot receives the
+      main content provided by the parent component.
+    -->
+    <ng-content></ng-content>
+  </div>
+</section>
