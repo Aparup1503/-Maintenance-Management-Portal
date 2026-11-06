@@ -1,0 +1,40 @@
+<article class="expense-card">
+  <div class="expense-card-content">
+    <div class="expense-card-header">
+      <div class="expense-details">
+        <h3>{{ expense().title }}</h3>
+
+        <span class="expense-category">
+          {{ expense().category }}
+        </span>
+      </div>
+
+      <h3 class="expense-amount">
+        {{ expense().amount | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+      </h3>
+    </div>
+
+    <div class="expense-meta">
+      <span>
+        <strong>Expense Date:</strong>
+        {{ expense().spentAt | date: 'dd MMM yyyy' }}
+      </span>
+    </div>
+
+    @if (expense().description) {
+      <p class="expense-description">
+        {{ expense().description }}
+      </p>
+    }
+  </div>
+
+  @if (isAdmin()) {
+    <div class="expense-actions">
+      <a [routerLink]="['/expenses', expense().id]" class="view-details-button"> View Details </a>
+
+      <button type="button" class="edit-button" (click)="onEdit()">Edit</button>
+
+      <button type="button" class="delete-button" (click)="onDelete()">Delete</button>
+    </div>
+  }
+</article>

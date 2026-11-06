@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { NavigationService } from './core/services/navigation/navigation.service';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth/auth.service';
 
@@ -12,6 +13,7 @@ import { AuthService } from './core/services/auth/auth.service';
 export class App {
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  readonly navigationService = inject(NavigationService);
   constructor() {
     console.log('2. Root component constructor executed');
   }

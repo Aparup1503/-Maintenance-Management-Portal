@@ -1,0 +1,82 @@
+<section class="expense-details-page">
+  <!-- Page Header -->
+  <div class="details-header">
+    <div>
+      <span class="page-label">Expense Management</span>
+      <h1>Expense Details</h1>
+      <p>View detailed information about the selected expense.</p>
+    </div>
+
+    <button type="button" class="back-button" (click)="goBack()">← Back to Expenses</button>
+  </div>
+
+  <!-- Expense Details -->
+  @if (expense(); as selectedExpense) {
+    <section class="details-card">
+      <div class="details-card-header">
+        <div class="icon-container">₹</div>
+
+        <div>
+          <h2>{{ selectedExpense.title }}</h2>
+          <p>Expense record details</p>
+        </div>
+      </div>
+
+      <div class="details-grid">
+        <!-- Category -->
+        <div class="detail-item">
+          <span class="detail-label">Category</span>
+
+          <strong class="detail-value">
+            {{ selectedExpense.category }}
+          </strong>
+        </div>
+
+        <!-- Amount -->
+        <div class="detail-item">
+          <span class="detail-label">Amount</span>
+
+          <strong class="detail-value amount-value">
+            {{ selectedExpense.amount | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+          </strong>
+        </div>
+
+        <!-- Expense Date -->
+        <div class="detail-item">
+          <span class="detail-label">Expense Date</span>
+
+          <strong class="detail-value">
+            {{ selectedExpense.spentAt | date: 'dd MMMM yyyy' }}
+          </strong>
+        </div>
+
+        <!-- Expense ID -->
+        <div class="detail-item">
+          <span class="detail-label">Expense ID</span>
+
+          <strong class="detail-value">
+            {{ selectedExpense.id }}
+          </strong>
+        </div>
+      </div>
+
+      <!-- Description -->
+      @if (selectedExpense.description) {
+        <div class="description-section">
+          <span class="detail-label">Description</span>
+
+          <p>{{ selectedExpense.description }}</p>
+        </div>
+      }
+    </section>
+  } @else {
+    <!-- Fallback state in case no resolved expense is available -->
+    <div class="error-state" role="alert">
+      <h2>Expense not found</h2>
+
+      <p>The requested expense record could not be found.</p>
+
+      <button type="button" class="back-button" (click)="goBack()">Back to Expenses</button>
+    </div>
+  }
+</section>

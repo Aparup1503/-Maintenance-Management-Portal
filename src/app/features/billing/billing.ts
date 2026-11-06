@@ -1,5 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+
+import { billingPeriodValidator } from '../../shared/validators/billing-period.validator';
 import { MaintenanceDataService } from '../../core/services/maintenance-data.service';
 import { PaymentMode } from '../../shared/models/payment.model';
 
@@ -9,13 +12,14 @@ type FeedbackType = 'success' | 'info' | 'error';
 @Component({
   selector: 'app-billing',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe],
+  imports: [CurrencyPipe, DatePipe, ReactiveFormsModule],
   templateUrl: './billing.html',
   styleUrl: './billing.scss',
 })
 export class BillingComponent {
   readonly data = inject(MaintenanceDataService);
 
+  private readonly fb = inject(FormBuilder);
   // Selected billing month. Format: YYYY-MM
   readonly selectedMonth = signal('2026-11');
 
@@ -79,6 +83,22 @@ export class BillingComponent {
     () => this.monthlyBills().filter((bill) => bill.status === 'Overdue').length,
   );
 
+  readonly billingForm = this.fb.nonNullable.group(
+    {
+      title: ['', [Validators.required, Validators.minLength(3)]],
+
+      periodStart: ['', Validators.required],
+
+      periodEnd: ['', Validators.required],
+
+      amount: [0, [Validators.required, Validators.min(1)]],
+
+      dueDate: ['', Validators.required],
+    },
+    {
+      validators: [billingPeriodValidator()],
+    },
+  );
   onMonthChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.selectedMonth.set(input.value);
@@ -168,5 +188,18 @@ export class BillingComponent {
     this.selectedBillId.set(null);
     this.paymentAmount.set(0);
     this.paymentError.set('');
+  }
+
+  onSubmit(): void {
+    if (this.billingForm.invalid) {
+      this.billingForm.markAllAsTouched();
+      return;
+    }
+
+    const billData = this.billingForm.getRawValue();
+
+    console.log('New bill:', billData);
+
+    // Later, we'll connect this to our Billing API.
   }
 }

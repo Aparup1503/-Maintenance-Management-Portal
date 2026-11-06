@@ -1,0 +1,18 @@
+<article class="app-card">
+  <!-- Projects parent-provided content marked with the card-header attribute into the card header section. -->
+  <header class="app-card-header">
+    <ng-content select="[card-header]" />
+    <!--Find the content from the parent that has the
+    card-header attribute and place it here. -->
+  </header>
+
+  <!-- Projects the main content marked with the card-content attribute into the card body. -->
+  <div class="app-card-content">
+    <ng-content select="[card-content]" />
+  </div>
+
+  <!-- Projects optional footer content marked with the card-footer attribute into the card footer section. -->
+  <footer class="app-card-footer">
+    <ng-content select="[card-footer]" />
+  </footer>
+</article>

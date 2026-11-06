@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { APP_CONFIG } from '../../core/config/app-config.token';
 
 import { ExpensesComponent } from './expenses';
@@ -14,6 +15,7 @@ describe('ExpensesComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ExpensesComponent],
       providers: [
+        provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

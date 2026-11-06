@@ -1,0 +1,135 @@
+.expense-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 19px;
+  border: 1px solid #e6ebf3;
+  border-radius: 13px;
+  background: #fff;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.expense-card:hover {
+  border-color: #d2dcf1;
+  box-shadow: 0 9px 22px rgb(23 35 59 / 7%);
+  transform: translateY(-2px);
+}
+
+.expense-card-content {
+  min-width: 0;
+}
+
+.expense-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.expense-details {
+  min-width: 0;
+
+  h3 {
+    overflow-wrap: anywhere;
+    margin: 0;
+    color: #17233b;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+}
+
+.expense-category {
+  display: inline-flex;
+  margin-top: 9px;
+  padding: 4px 9px;
+  border: 1px solid #dfe7fb;
+  border-radius: 999px;
+  background: #f4f7ff;
+  color: #3859ad;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.expense-amount {
+  flex: 0 0 auto;
+  margin: 0;
+  color: #1d376f;
+  font-size: 1.08rem;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  text-align: right;
+}
+
+.expense-meta {
+  margin-top: 17px;
+  color: #718096;
+  font-size: 0.8rem;
+
+  strong {
+    color: #4a5870;
+    font-weight: 650;
+  }
+}
+
+.expense-description {
+  overflow-wrap: anywhere;
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.expense-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #edf0f5;
+}
+
+.expense-actions button,
+.view-details-button {
+  display: inline-flex;
+  min-height: 36px;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 11px;
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.view-details-button:hover,
+.edit-button:hover {
+  border-color: #c8d5f4;
+  background: #f4f7ff;
+  color: #3157c8;
+}
+
+.delete-button {
+  border-color: #f0d1d2 !important;
+  color: #b4232d !important;
+}
+
+.delete-button:hover:not(:disabled) {
+  border-color: #e8b3b6 !important;
+  background: #fff5f5 !important;
+}

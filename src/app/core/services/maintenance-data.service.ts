@@ -276,7 +276,11 @@ export class MaintenanceDataService {
   // ==========================================
 
   addExpense(expense: Omit<Expense, 'id'>): void {
-    const nextId = Math.max(0, ...this.expenses().map((item) => item.id)) + 1;
+    const nextId =
+      this.expenses().reduce(
+        (maxId, item) => (typeof item.id === 'number' ? Math.max(maxId, item.id) : maxId),
+        0,
+      ) + 1;
 
     this.expenses.update((currentExpenses) => [
       ...currentExpenses,
@@ -287,12 +291,12 @@ export class MaintenanceDataService {
     ]);
   }
 
-  updateExpense(id: number, updatedExpense: Omit<Expense, 'id'>): void {
+  updateExpense(id: string | number, updatedExpense: Omit<Expense, 'id'>): void {
     this.expenses.update((currentExpenses) =>
       currentExpenses.map((expense) => (expense.id === id ? { ...updatedExpense, id } : expense)),
     );
   }
-  deleteExpense(id: number): void {
+  deleteExpense(id: string | number): void {
     this.expenses.update((currentExpenses) =>
       currentExpenses.filter((expense) => expense.id !== id),
     );

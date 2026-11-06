@@ -51,15 +51,7 @@
       "description": "Lift maintenance and servicing"
     },
     {
-      "title": "Appu",
-      "category": "Electricity",
-      "amount": 3000,
-      "spentAt": "2026-11-04",
-      "description": "Maintenance Bill",
-      "id": "vC7C5NW7-JA"
-    },
-    {
-      "title": "Sonu",
+      "title": "Sonu Giri",
       "category": "Miscellaneous",
       "amount": 1000,
       "spentAt": "2026-11-05",
@@ -73,6 +65,41 @@
       "spentAt": "2026-11-05",
       "description": "s",
       "id": "AEMtcIUTTUY"
+    },
+    {
+      "title": "Aparup Giri",
+      "category": "Miscellaneous",
+      "amount": 2600,
+      "spentAt": "2026-11-05",
+      "description": "Additional Services",
+      "id": "6RXj0nQ10Sc"
+    },
+    {
+      "title": "Maruti",
+      "category": "Cleaning",
+      "amount": 1200,
+      "spentAt": "2026-11-06",
+      "description": "Cleaning Facilities",
+      "id": "n-YCJRklnhs"
+    },
+    {
+      "title": "New CCTV",
+      "category": "Maintenance",
+      "amount": 12000,
+      "spentAt": "2026-11-06",
+      "description": "CCTV Required",
+      "id": "gzPtik2jNZE"
+    },
+    {
+      "title": "Aparup Giri",
+      "category": "Repairs",
+      "amount": 2000,
+      "spentAt": "2026-11-06",
+      "description": "",
+      "references": [
+        "INV2345"
+      ],
+      "id": "-NW-QybW5JQ"
     }
   ],
   "bills": [

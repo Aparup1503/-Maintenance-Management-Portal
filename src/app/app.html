@@ -6,17 +6,26 @@
 
   @if (authService.isAuthenticated()) {
     <nav aria-label="Main navigation">
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        Dashboard
-      </a>
-      @if (authService.userRole() === 'Admin') {
-        <a routerLink="/expenses" routerLinkActive="active">Expenses</a>
-        <a routerLink="/payments" routerLinkActive="active">Payments</a>
-        <a routerLink="/billing" routerLinkActive="active">Billing</a>
+      @for (item of navigationService.visibleNavigationItems(); track item.path) {
+        <!-- <a
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          Dashboard
+        </a>
+        @if (authService.userRole() === 'Admin') {
+          <a routerLink="/expenses" routerLinkActive="active">Expenses</a>
+          <a routerLink="/payments" routerLinkActive="active">Payments</a>
+          <a routerLink="/billing" routerLinkActive="active">Billing</a>
+        } -->
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          {{ item.title }}
+        </a>
       }
       <button type="button" (click)="logout()">Logout</button>
     </nav>

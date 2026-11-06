@@ -1,6 +1,20 @@
-import { Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  viewChild,
+  viewChildren,
+  afterNextRender,
+  OnInit,
+  AfterViewInit,
+  signal,
+  ElementRef,
+  afterRenderEffect,
+} from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormArray, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   Subject,
   catchError,
@@ -12,31 +26,44 @@ import {
   map,
   finalize,
 } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MaintenanceDataService } from '../../core/services/maintenance-data.service';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Expense } from '../../shared/models/expense.model';
 import { ExpenseApiService } from '../../core/services/api/expense-api.service';
+import { ExpenseCardComponent } from './components/expense-card/expense-card';
+import { ExpenseStoreService } from '../../core/services/state/expense-store.service';
+import { AppCardComponent } from '../../shared/components/app-card/app-card';
+import { notBlankValidator } from '../../shared/validators/not-blank.validator';
 
 @Component({
   selector: 'app-expenses',
-  imports: [CurrencyPipe, DatePipe, ReactiveFormsModule],
+  imports: [CurrencyPipe, ReactiveFormsModule, ExpenseCardComponent, AppCardComponent],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
-export class ExpensesComponent implements OnInit {
+export class ExpensesComponent implements OnInit, AfterViewInit {
   //API service responsible for HTTP communication.
   private readonly expenseApiService = inject(ExpenseApiService);
 
-  readonly data = inject(MaintenanceDataService);
   //DestroyRef allows Angular to automatically clean up.
   // Observable subscriptions when the component is destroyed.
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly fb = inject(FormBuilder);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly expenseStore = inject(ExpenseStoreService);
 
-  // Signal containing expenses received from the API.
-  readonly expenses = signal<Expense[]>([]);
+  // Reads expense data from the shared Expense Store.
+  readonly expenses = this.expenseStore.expenses;
+
+  //Gets a reference to the expense form container after Angular renders it.
+  private readonly expenseFormSection = viewChild<ElementRef<HTMLElement>>('expenseFormSection');
+
+  private readonly pageHeader = viewChild<ElementRef<HTMLElement>>('pageHeader');
+
+  // Gets all currently rendered ExpenseCardComponent instances.
+  private readonly expenseCards = viewChildren(ExpenseCardComponent);
 
   // Tracks the Add Expense API request.
   readonly isSaving = signal(false);
@@ -51,26 +78,42 @@ export class ExpensesComponent implements OnInit {
   // Reactive search state
   readonly searchText = signal('');
 
-  // Reactive category filter
-  readonly selectedCategory = signal('All');
-
   // Admin role simulation
   readonly isAdmin = signal(true);
 
   // Add Expense form visibility
   readonly showAddForm = signal(false);
 
+  // Converts Angular Router query parameters from an Observable
+  // into a Signal so they can be used with Angular's Signals API.
+  private readonly queryParamMap = toSignal(this.activatedRoute.queryParamMap);
+
+  // constructor() {
+  //   afterRenderEffect(() => {
+  //     const header = this.pageHeader();
+
+  //     if (!header) {
+  //       return;
+  //     }
+
+  //     console.log('Page header:', header.nativeElement);
+  //   });
+  // }
+
   // Emits search text whenever the user changes the search input.
-  private readonly searchSubject = new Subject<string>();
+  //private readonly searchSubject = new Subject<string>();
 
   ngOnInit(): void {
     // Load expenses when the feature is initialized.
     this.loadExpenses();
+  }
 
-    // Initialize the RxJS search pipeline once.
-    // The pipeline remains subscribed and listens for search values
-    // emitted through searchSubject whenever the user types.
-    this.setupExpenseSearch();
+  ngAfterViewInit(): void {
+    console.log(this.pageHeader()?.nativeElement);
+  }
+  getVisibleExpenseCardCount(): number {
+    // Returns the number of ExpenseCard components currently rendered.
+    return this.expenseCards().length;
   }
 
   loadExpenses(): void {
@@ -111,8 +154,8 @@ export class ExpensesComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((expenses) => {
-        // Update the Signal with the final data.
-        this.expenses.set(expenses);
+        //Store the API response in the shared state.
+        this.expenseStore.setExpenses(expenses);
       });
   }
 
@@ -140,7 +183,7 @@ export class ExpensesComponent implements OnInit {
         next: () => {
           // Remove the deleted expense from the local Signal.
           // We use filter() to create a new immutable array.
-          this.expenses.update((expenses) => expenses.filter((item) => item.id !== expense.id));
+          this.expenseStore.removeExpense(expense.id);
           this.deletingExpenseId.set(null);
         },
 
@@ -152,7 +195,7 @@ export class ExpensesComponent implements OnInit {
       });
   }
 
-  readonly editingExpenseId = signal<number | null>(null);
+  readonly editingExpenseId = signal<string | number | null>(null);
 
   // Expense categories
   readonly expenseCategories = [
@@ -166,11 +209,26 @@ export class ExpensesComponent implements OnInit {
   ];
 
   readonly expenseForm = this.fb.nonNullable.group({
-    title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+    title: [
+      '',
+      [
+        Validators.required,
+        notBlankValidator(), // Custom validator to prevent whitespace-only input.
+        Validators.minLength(3),
+        Validators.maxLength(100),
+      ],
+    ],
+
     category: ['Electricuty', Validators.required],
-    amount: [0, [Validators.required, Validators.maxLength(1)]],
+
+    amount: [0, [Validators.required, Validators.min(1)]],
+
     spentAt: [new Date().toISOString().slice(0, 10), Validators.required],
+
     description: ['', Validators.maxLength(250)],
+
+    // Dynamic list of supporting references that users can add or remove.
+    references: this.fb.nonNullable.array<string>([]),
   });
   // Available categories
   readonly categories = computed(() => [
@@ -178,39 +236,66 @@ export class ExpensesComponent implements OnInit {
     ...new Set(this.expenses().map((expense) => expense.category)),
   ]);
 
-  onSelectionChange(event: Event): void {
-    // Convert the event target into an HTMLSelectElement
-    const selectElement = event.target as HTMLSelectElement;
-
-    // Update the selected category signal
-    this.selectedCategory.set(selectElement.value);
-
-    // Display the updated category in the console
-    console.log('Selected Category:', this.selectedCategory());
-  }
-
   onSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
 
-    //Keep the existing UI search state updated.
+    // Update the local UI search state.
+    // filteredExpenses() automatically recalculates.
     this.searchText.set(value);
-
-    // Push the latest value into the RxJS stream.
-    // Or Emit the latest search value into the existing RxJS pipeline.
-    // setupExpenseSearch() has already created and subscribed to this pipeline,
-    // so every emitted value flows through debounceTime(),
-    // distinctUntilChanged(), and switchMap().
-    this.searchSubject.next(value);
   }
 
+  onCategoryChange(event: Event): void {
+    const category = (event.target as HTMLSelectElement).value;
+
+    // Update the selected category used by the UI filter.
+    //this.selectedCategory.set(category);
+
+    // Keep the selected category synchronized with the URL.
+    this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+
+      queryParams: {
+        category: category === 'All' ? null : category,
+      },
+
+      // Preserve other query parameters if we add search,
+      // pagination, or sorting parameters later.
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  // Provides easy access to the dynamic references FormArray.
+  get references(): FormArray<FormControl<string>> {
+    return this.expenseForm.controls.references;
+  }
+
+  // Adds a new non-nullable string FormControl to the references FormArray.
+  // Each reference is required and cannot exceed 100 characters.
+  addReference(): void {
+    this.references.push(
+      this.fb.nonNullable.control('', [
+        Validators.required,
+        notBlankValidator(), // Prevents users from entering whitespace-only references.
+        Validators.maxLength(100),
+      ]),
+    );
+  }
+
+  // Removes the reference FormControl at the specified index
+  // from the references FormArray.
+  removeReference(index: number): void {
+    this.references.removeAt(index);
+  }
   //$ Filter expenses reactively
   readonly filteredExpenses = computed(() => {
-    const search = this.searchText().trim().toLowerCase();
+    console.log('Filtering expenses...');
 
+    const search = this.searchText().trim().toLowerCase();
     const category = this.selectedCategory();
 
     return this.expenses().filter((expense) => {
       const matchesSearch =
+        search === '' ||
         expense.title.toLowerCase().includes(search) ||
         expense.category.toLowerCase().includes(search);
 
@@ -218,6 +303,12 @@ export class ExpensesComponent implements OnInit {
 
       return matchesSearch && matchesCategory;
     });
+  });
+
+  // Derives the selected category directly from the URL.
+  // When the query parameter changes, this value updates automatically.
+  readonly selectedCategory = computed(() => {
+    return this.queryParamMap()?.get('category') ?? 'All';
   });
 
   // Total expenses
@@ -234,8 +325,16 @@ export class ExpensesComponent implements OnInit {
       spentAt: new Date().toISOString().slice(0, 10),
       description: '',
     });
+    this.references.clear();
 
     this.showAddForm.set(true);
+    // Scroll to the newly opened form.
+    setTimeout(() => {
+      this.expenseFormSection()?.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
   }
   //$ Edit Expense
   editExpense(expense: Expense): void {
@@ -249,7 +348,43 @@ export class ExpensesComponent implements OnInit {
       description: expense.description ?? '',
     });
 
+    // Remove references belonging to the previously edited expense.
+    this.references.clear();
+
+    // Recreate a FormControl for each saved reference.
+    expense.references?.forEach((reference) => {
+      this.references.push(
+        this.fb.nonNullable.control(reference, [
+          Validators.required,
+          notBlankValidator(),
+          Validators.maxLength(100),
+        ]),
+      );
+    });
+
     this.showAddForm.set(true);
+
+    // Schedules the scroll operation to run in a later JavaScript task.
+    // This gives Angular an opportunity to render the form before we access
+    // its DOM element. However, it relies on timing rather than Angular's
+    // rendering lifecycle, so it is less explicit and predictable.
+    setTimeout(() => {
+      this.expenseFormSection()?.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+
+    //^Recomended Approach
+    // Registers a callback to run after Angular completes the next render cycle.
+    // Since showAddForm was set to true, Angular will render the form first.
+    // The callback can then safely access the form's DOM element and scroll to it.
+    // afterNextRender(() => {
+    //   this.expenseFormSection()?.nativeElement.scrollIntoView({
+    //     behavior: 'smooth',
+    //     block: 'start',
+    //   });
+    // });
   }
 
   //$ Close form
@@ -276,12 +411,18 @@ export class ExpensesComponent implements OnInit {
     const formValue = this.expenseForm.getRawValue();
 
     // Prepare the data that will be sent to the API.
+
     const expenseData = {
       title: formValue.title.trim(),
       category: formValue.category,
       amount: formValue.amount,
       spentAt: formValue.spentAt,
       description: formValue.description.trim(),
+
+      // Remove extra spaces and exclude empty reference values.
+      references: formValue.references
+        .map((reference) => reference.trim())
+        .filter((reference) => reference.length > 0),
     };
 
     const expenseId = this.editingExpenseId();
@@ -299,12 +440,10 @@ export class ExpensesComponent implements OnInit {
       next: (savedExpense) => {
         if (expenseId !== null) {
           // Replace the updated expense in the Signal.
-          this.expenses.update((expenses) =>
-            expenses.map((expense) => (expense.id === savedExpense.id ? savedExpense : expense)),
-          );
+          this.expenseStore.updateExpense(savedExpense);
         } else {
           // Add the newly created expense to the Signal.
-          this.expenses.update((expenses) => [...expenses, savedExpense]);
+          this.expenseStore.addExpense(savedExpense);
         }
 
         this.isSaving.set(false);
@@ -320,47 +459,5 @@ export class ExpensesComponent implements OnInit {
         this.isSaving.set(false);
       },
     });
-  }
-
-  private setupExpenseSearch(): void {
-    // Create the search Observable pipeline once during component initialization.
-    // searchSubject does not emit any value here; the pipeline simply waits
-    // for values emitted later through searchSubject.next().
-    this.searchSubject
-      .pipe(
-        // Wait until the user stops typing.
-        debounceTime(400),
-
-        // Ignore duplicate consecutive search values.
-        distinctUntilChanged(),
-
-        // Switch to the latest API request.
-        switchMap((searchText) => {
-          console.log(searchText);
-
-          //Remove unnecessary whitespace before performing the search.
-          if (!searchText.trim()) {
-            // If the search is empty, load all expenses.
-            return this.expenseApiService.getExpenses();
-          }
-
-          return this.expenseApiService.searchExpenses(searchText.trim());
-        }),
-
-        // Handle search errors without breaking the stream.
-        catchError((error) => {
-          console.error('Unable to search expenses.', error);
-
-          this.errorMessage.set('Unable to search expenses. Please try again.');
-
-          return of([]);
-        }),
-
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((expenses) => {
-        // Update the existing Signal with the API result.
-        this.expenses.set(expenses);
-      });
   }
 }

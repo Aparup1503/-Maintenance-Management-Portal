@@ -26,6 +26,13 @@ export class ExpenseApiService {
     return this.http.get<Expense[]>(this.apiUrl);
   }
 
+  getExpenseById(id: string | number): Observable<Expense> {
+    //~ Retrieves a single expense record using its unique identifier.
+    //~The returned Observable allows the component to handle loading,
+    //~ success, and error states.
+    return this.http.get<Expense>(`${this.apiUrl}/${id}`);
+  }
+
   addExpense(expense: Omit<Expense, 'id'>): Observable<Expense> {
     //~ Sends a POST request to create a new expense.
     //~ json-server generates and returns the new expense.
@@ -44,7 +51,7 @@ export class ExpenseApiService {
   }
 
   // searchExpenses(searchText: string): Observable<Expense[]> {
-  //   //~ json-server supports query parameters for filtering.
+  //   // json-server supports query parameters for filtering.
   //   return this.http.get<Expense[]>(this.apiUrl, {
   //     params: {
   //       q: searchText,

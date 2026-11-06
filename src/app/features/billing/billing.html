@@ -1,3 +1,59 @@
+<section class="billing-form-section">
+  <h2>Create Monthly Bill</h2>
+  <p>Create a maintenance bill and define its billing period.</p>
+
+  <form [formGroup]="billingForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="title">Bill Title</label>
+
+      <input
+        id="title"
+        type="text"
+        formControlName="title"
+        placeholder="e.g. November 2026 Maintenance"
+      />
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="periodStart">Billing Period From</label>
+
+        <input id="periodStart" type="date" formControlName="periodStart" />
+      </div>
+
+      <div class="form-group">
+        <label for="periodEnd">Billing Period To</label>
+
+        <input id="periodEnd" type="date" formControlName="periodEnd" />
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="amount">Maintenance Amount (₹)</label>
+
+        <input id="amount" type="number" formControlName="amount" min="1" />
+      </div>
+
+      <div class="form-group">
+        <label for="dueDate">Due Date</label>
+
+        <input id="dueDate" type="date" formControlName="dueDate" />
+      </div>
+    </div>
+
+    <!-- Cross-field validation errors -->
+    @if (billingForm.touched && billingForm.errors?.['invalidBillingPeriod']) {
+      <p class="error-message">Billing period end date must be after the start date.</p>
+    }
+
+    @if (billingForm.touched && billingForm.errors?.['invalidDueDate']) {
+      <p class="error-message">Due date cannot be before the billing period end date.</p>
+    }
+
+    <button type="submit" [disabled]="billingForm.invalid">Create Bill</button>
+  </form>
+</section>
 <section class="billing-page">
   <!-- Page Header -->
   <header class="page-header">

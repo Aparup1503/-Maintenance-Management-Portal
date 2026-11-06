@@ -10,7 +10,7 @@
     </div>
   </div>
 } @else {
-  <section class="expenses-page">
+  <section #pageHeader class="expenses-page">
     <!-- Page Header -->
     <header class="page-header">
       <div>
@@ -25,24 +25,37 @@
       }
     </header>
 
-    <!-- Expense Summary -->
-    <section class="expense-summary">
-      <div class="summary-item">
-        <span>Total Expenses</span>
-        <h2>
-          {{ totalExpenses() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
-        </h2>
+    <app-card>
+      <!-- Card Header -->
+      <div card-header>
+        <h2>Expense Summary</h2>
+        <p>Overview of your current expense records.</p>
       </div>
 
-      <div class="summary-item">
-        <span>Matching Records</span>
-        <h2>{{ filteredExpenses().length }}</h2>
-      </div>
-    </section>
+      <!-- Card Content -->
+      <section card-content class="expense-summary">
+        <div class="summary-item">
+          <span>Total Expenses</span>
 
+          <h2>
+            {{ totalExpenses() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
+          </h2>
+        </div>
+
+        <div class="summary-item">
+          <span>Matching Records</span>
+          <h2>{{ filteredExpenses().length }}</h2>
+        </div>
+      </section>
+
+      <!-- Card Footer -->
+      <div card-footer>
+        <small> Expense information is updated based on the latest available records. </small>
+      </div>
+    </app-card>
     <!-- Add / Edit Expense Form -->
     @if (showAddForm()) {
-      <section class="expense-form-container">
+      <section #expenseFormSection class="expense-form-container">
         <div class="form-header">
           <div>
             <h2>
@@ -78,6 +91,8 @@
                 <small class="error-message" role="alert">
                   @if (expenseForm.controls.title.errors?.['required']) {
                     Expense title is required.
+                  } @else if (expenseForm.controls.title.errors?.['blank']) {
+                    Expense title cannot contain only spaces.
                   } @else if (expenseForm.controls.title.errors?.['minlength']) {
                     Minimum 3 characters required.
                   } @else if (expenseForm.controls.title.errors?.['maxlength']) {
@@ -155,6 +170,38 @@
                 <small class="error-message" role="alert">Maximum 250 characters allowed.</small>
               }
             </div>
+
+            <!-- Supporting References -->
+            <div class="form-group full-width">
+              <div class="references-header">
+                <label>Supporting References</label>
+
+                <button type="button" class="add-reference-button" (click)="addReference()">
+                  + Add Reference
+                </button>
+              </div>
+
+              <p class="field-help">
+                Add invoice, receipt, or service reference numbers if available.
+              </p>
+
+              <div formArrayName="references" class="references-list">
+                @for (reference of references.controls; track $index; let i = $index) {
+                  <div class="reference-row">
+                    <input type="text" [formControlName]="i" placeholder="e.g. INV-2026-001" />
+
+                    <button
+                      type="button"
+                      class="remove-reference-button"
+                      (click)="removeReference(i)"
+                      aria-label="Remove reference"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
           </div>
 
           <!-- Form Actions -->
@@ -195,7 +242,7 @@
         <select
           aria-label="Filter expenses by category"
           [value]="selectedCategory()"
-          (change)="selectedCategory.set($any($event.target).value)"
+          (change)="onCategoryChange($event)"
         >
           @for (category of categories(); track category) {
             <option [value]="category">
@@ -211,62 +258,17 @@
       <div class="section-header">
         <h2>Expense Records</h2>
         <span>{{ filteredExpenses().length }} records</span>
+        <span> {{ getVisibleExpenseCardCount() }} cards currently rendered </span>
       </div>
 
       <div class="expense-list">
         @for (expense of filteredExpenses(); track expense.id) {
-          <article class="expense-card">
-            <div class="expense-card-content">
-              <div class="expense-card-header">
-                <div class="expense-details">
-                  <h3>{{ expense.title }}</h3>
-
-                  <span class="expense-category">
-                    {{ expense.category }}
-                  </span>
-                </div>
-
-                <h3 class="expense-amount">
-                  {{ expense.amount | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}
-                </h3>
-              </div>
-
-              <div class="expense-meta">
-                <span>
-                  <strong>Expense Date:</strong>
-                  {{ expense.spentAt | date: 'dd MMM yyyy' }}
-                </span>
-              </div>
-
-              @if (expense.description) {
-                <p class="expense-description">
-                  {{ expense.description }}
-                </p>
-              }
-            </div>
-
-            <!-- Expense Actions -->
-            @if (isAdmin()) {
-              <div class="expense-actions">
-                <button type="button" class="edit-button" (click)="editExpense(expense)">
-                  Edit
-                </button>
-
-                <button
-                  type="button"
-                  class="delete-button"
-                  (click)="deleteExpense(expense)"
-                  [disabled]="deletingExpenseId() === expense.id"
-                >
-                  @if (deletingExpenseId() === expense.id) {
-                    Deleting...
-                  } @else {
-                    Delete
-                  }
-                </button>
-              </div>
-            }
-          </article>
+          <app-expense-card
+            [expense]="expense"
+            [isAdmin]="isAdmin()"
+            (editExpense)="editExpense($event)"
+            (deleteExpense)="deleteExpense($event)"
+          />
         } @empty {
           <div class="empty-state">
             <h3>No expenses found</h3>
