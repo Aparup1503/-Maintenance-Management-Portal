@@ -1,6 +1,9 @@
 # Maintenance Management Portal
 
-An Angular portal for managing maintenance expenses, bills, and payments.
+An Angular portal for managing residents, maintenance expenses, bills, and payments.
+
+Administrators can maintain the resident directory, including flat assignments,
+contact details, monthly maintenance amounts, and active status.
 
 ## Project overview
 

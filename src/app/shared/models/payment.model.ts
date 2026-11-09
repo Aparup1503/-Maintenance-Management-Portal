@@ -5,6 +5,7 @@ export interface Payment {
   spentAt: string | number | Date;
   id: number;
   residentId: number;
+  billId?: number | string;
   flatNumber?: string;
   amount: number;
   paymentDate: string;
@@ -12,6 +13,7 @@ export interface Payment {
   status: PaymentStatus;
   paidAt?: string;
   paymentMode?: PaymentMode;
+  paymentMethod?: PaymentMode;
 }
 
 // export type PaymentMode = 'Cash' | 'UPI' | 'Bank Transfer';

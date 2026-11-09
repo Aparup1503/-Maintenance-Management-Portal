@@ -1,24 +1,23 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, ParamMap, provideRouter, convertToParamMap } from '@angular/router';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { ExpenseApiService } from '../../../core/services/api/expense-api.service';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { Expense } from '../../../shared/models/expense.model';
 import { ExpenseDetailsComponent } from './expense-details';
 
 describe('ExpenseDetailsComponent', () => {
   let fixture: ComponentFixture<ExpenseDetailsComponent>;
   let component: ExpenseDetailsComponent;
-  let routeParams: BehaviorSubject<ParamMap>;
-  let requests: Map<string, Subject<Expense>>;
-  let getExpenseById: jasmine.Spy;
+  let routeData: BehaviorSubject<Record<string, unknown>>;
 
   beforeEach(async () => {
-    routeParams = new BehaviorSubject(convertToParamMap({ id: 'first' }));
-    requests = new Map<string, Subject<Expense>>();
-    getExpenseById = jasmine.createSpy('getExpenseById').and.callFake((id: string) => {
-      const request = new Subject<Expense>();
-      requests.set(id, request);
-      return request.asObservable();
+    routeData = new BehaviorSubject<Record<string, unknown>>({
+      expense: {
+        id: 'first',
+        title: 'First expense',
+        category: 'Maintenance',
+        amount: 100,
+        spentAt: '2026-11-01',
+      } satisfies Expense,
     });
 
     await TestBed.configureTestingModule({
@@ -27,11 +26,7 @@ describe('ExpenseDetailsComponent', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: routeParams.asObservable() },
-        },
-        {
-          provide: ExpenseApiService,
-          useValue: { getExpenseById },
+          useValue: { data: routeData.asObservable() },
         },
       ],
     }).compileComponents();
@@ -41,30 +36,18 @@ describe('ExpenseDetailsComponent', () => {
     fixture.detectChanges();
   });
 
-  it('shows the expense for the latest route id if an earlier request finishes later', () => {
-    const firstExpense = {
-      id: 'first',
-      title: 'First expense',
-      category: 'Maintenance',
-      amount: 100,
-      spentAt: '2026-11-01',
-    };
+  it('shows the expense resolved by the route', () => {
     const secondExpense = {
       id: 'second',
       title: 'Second expense',
       category: 'Electricity',
       amount: 200,
       spentAt: '2026-11-02',
-    };
+    } satisfies Expense;
 
-    routeParams.next(convertToParamMap({ id: 'second' }));
-
-    requests.get('second')?.next(secondExpense);
-    requests.get('first')?.next(firstExpense);
+    routeData.next({ expense: secondExpense });
     fixture.detectChanges();
 
-    expect(getExpenseById).toHaveBeenCalledWith('first');
-    expect(getExpenseById).toHaveBeenCalledWith('second');
     expect(component.expense()).toEqual(secondExpense);
     expect(fixture.nativeElement.textContent).toContain('Second expense');
     expect(fixture.nativeElement.textContent).not.toContain('First expense');

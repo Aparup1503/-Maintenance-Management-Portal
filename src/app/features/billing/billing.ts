@@ -83,6 +83,7 @@ export class BillingComponent {
     () => this.monthlyBills().filter((bill) => bill.status === 'Overdue').length,
   );
 
+  //Typed Reactive Forms
   readonly billingForm = this.fb.nonNullable.group(
     {
       title: ['', [Validators.required, Validators.minLength(3)]],
@@ -99,6 +100,7 @@ export class BillingComponent {
       validators: [billingPeriodValidator()],
     },
   );
+
   onMonthChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.selectedMonth.set(input.value);
@@ -201,5 +203,20 @@ export class BillingComponent {
     console.log('New bill:', billData);
 
     // Later, we'll connect this to our Billing API.
+  }
+
+  /**
+   * Checks whether the user can safely leave the Expenses page.
+   */
+  canDeactivate(): boolean {
+    // No form is currently open, so navigation is safe.
+
+    // The form has not been modified, so navigation is safe.
+    if (!this.billingForm.dirty) {
+      return true;
+    }
+
+    // Ask the user before discarding unsaved changes.
+    return window.confirm('You have unsaved changes. Are you sure you want to leave this page?');
   }
 }

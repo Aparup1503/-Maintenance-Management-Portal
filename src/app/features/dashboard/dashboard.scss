@@ -4,6 +4,10 @@
 }
 
 .page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 28px;
 
   h1 {
@@ -15,6 +19,20 @@
     margin: 0;
     color: #6b7280;
   }
+}
+
+.manage-residents-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid #2445aa;
+  border-radius: 7px;
+  background: #3157c8;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .dashboard-cards {
@@ -69,6 +87,11 @@
 @media (max-width: 600px) {
   .dashboard-page {
     padding: 16px;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .dashboard-cards {

@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
 import { roleGuard } from './core/guards/role.guard';
 import { expenseResolver } from './features/expenses/resolvers/expense.resolver';
+import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -13,7 +15,16 @@ export const routes: Routes = [
     redirectTo: 'login',
     pathMatch: 'full',
   },
-
+  {
+    path: 'settings',
+    loadComponent: () => import('./features/settings/settings').then((m) => m.SettingsComponent),
+    canActivate: [adminGuard],
+    data: {
+      title: 'Settings',
+      showInNavigation: true,
+      roles: ['Admin', 'Resident'],
+    },
+  },
   {
     path: 'dashboard',
 
@@ -35,7 +46,7 @@ export const routes: Routes = [
       import('./features/expenses/expenses').then((component) => component.ExpensesComponent),
 
     canActivate: [authGuard, roleGuard],
-
+    canDeactivate: [unsavedChangesGuard],
     data: {
       title: 'Expenses',
       showInNavigation: true,
@@ -66,6 +77,7 @@ export const routes: Routes = [
     path: 'billing',
     loadComponent: () => import('./features/billing/billing').then((m) => m.BillingComponent),
     canActivate: [authGuard, roleGuard],
+    canDeactivate: [unsavedChangesGuard],
     data: {
       title: 'Billing',
       showInNavigation: true,
@@ -80,6 +92,17 @@ export const routes: Routes = [
       title: 'Payments',
       showInNavigation: true,
       roles: ['Admin'],
+    },
+  },
+  {
+    path: 'residents',
+    loadComponent: () =>
+      import('./features/residents/residents').then((m) => m.ResidentsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: {
+      title: 'Residents',
+      showInNavigation: true,
+      roles: ['Admin', 'Resident'],
     },
   },
   {

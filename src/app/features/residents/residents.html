@@ -1,0 +1,173 @@
+<section class="residents-page">
+  <header class="page-header">
+    <div>
+      <h1>Resident Management</h1>
+      <p>Manage resident contact details, flat assignments, and maintenance amounts.</p>
+    </div>
+    <button type="button" class="primary-button" (click)="openAddForm()">+ Add Resident</button>
+  </header>
+
+  <section class="resident-summary" aria-label="Resident summary">
+    <article class="summary-card">
+      <span>Total Residents</span>
+      <strong>{{ data.residents().length }}</strong>
+    </article>
+    <article class="summary-card">
+      <span>Active Residents</span>
+      <strong>{{ activeResidents() }}</strong>
+    </article>
+    <article class="summary-card">
+      <span>Monthly Maintenance</span>
+      <strong>{{ monthlyMaintenanceTotal() | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}</strong>
+    </article>
+  </section>
+
+  @if (showForm()) {
+    <section class="resident-form-card">
+      <header class="section-header">
+        <div>
+          <h2>{{ editingResidentId() === null ? 'Add Resident' : 'Edit Resident' }}</h2>
+          <p>Fields marked with * are required.</p>
+        </div>
+        <button type="button" class="icon-button" aria-label="Close form" (click)="closeForm()">
+          &times;
+        </button>
+      </header>
+
+      <form [formGroup]="residentForm" (ngSubmit)="saveResident()" novalidate>
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="residentName">Full Name *</label>
+            <input id="residentName" type="text" formControlName="name" autocomplete="name" />
+            @if (residentForm.controls.name.touched && residentForm.controls.name.invalid) {
+              <small>Please enter the resident's name.</small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="residentFlat">Flat Number *</label>
+            <input id="residentFlat" type="text" formControlName="flatNumber" placeholder="e.g. A-101" />
+          </div>
+
+          <div class="form-field">
+            <label for="residentPhone">Phone *</label>
+            <input id="residentPhone" type="tel" formControlName="phone" autocomplete="tel" />
+            @if (residentForm.controls.phone.touched && residentForm.controls.phone.invalid) {
+              <small>Enter a valid phone number.</small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="residentEmail">Email</label>
+            <input id="residentEmail" type="email" formControlName="email" autocomplete="email" />
+            @if (residentForm.controls.email.touched && residentForm.controls.email.invalid) {
+              <small>Enter a valid email address.</small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="residentMaintenance">Monthly Maintenance (₹) *</label>
+            <input
+              id="residentMaintenance"
+              type="number"
+              min="0"
+              formControlName="monthlyMaintenance"
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="residentStatus">Status *</label>
+            <select id="residentStatus" formControlName="status">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        @if (formError()) {
+          <p class="form-error" role="alert">{{ formError() }}</p>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="closeForm()">Cancel</button>
+          <button type="submit" class="primary-button">
+            {{ editingResidentId() === null ? 'Add Resident' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <section class="resident-list-card">
+    <header class="list-header">
+      <div>
+        <h2>Residents</h2>
+        <p>{{ filteredResidents().length }} resident(s) shown</p>
+      </div>
+      <div class="filters">
+        <label class="sr-only" for="residentSearch">Search residents</label>
+        <input
+          id="residentSearch"
+          type="search"
+          placeholder="Search name, flat, or phone"
+          [value]="searchTerm()"
+          (input)="onSearchChange($event)"
+        />
+        <label class="sr-only" for="residentStatusFilter">Filter by status</label>
+        <select id="residentStatusFilter" [value]="selectedStatus()" (change)="onStatusChange($event)">
+          <option value="All">All statuses</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+    </header>
+
+    @if (filteredResidents().length > 0) {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Resident</th>
+              <th>Flat</th>
+              <th>Contact</th>
+              <th>Monthly Maintenance</th>
+              <th>Status</th>
+              <th><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (resident of filteredResidents(); track resident.id) {
+              <tr>
+                <td><strong>{{ resident.name }}</strong></td>
+                <td>{{ resident.flatNumber }}</td>
+                <td>
+                  <a [href]="'tel:' + resident.phone">{{ resident.phone }}</a>
+                  @if (resident.email) {
+                    <a class="email-link" [href]="'mailto:' + resident.email">{{ resident.email }}</a>
+                  }
+                </td>
+                <td>{{ resident.monthlyMaintenance | currency: 'INR' : 'symbol' : '1.0-0' : 'en-IN' }}</td>
+                <td>
+                  <span
+                    class="status-badge"
+                    [class.inactive]="resident.status === 'Inactive'"
+                  >
+                    {{ resident.status ?? 'Active' }}
+                  </span>
+                </td>
+                <td>
+                  <button type="button" class="edit-button" (click)="editResident(resident)">Edit</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <h3>No residents found</h3>
+        <p>Try a different search or add a resident to the directory.</p>
+      </div>
+    }
+  </section>
+</section>

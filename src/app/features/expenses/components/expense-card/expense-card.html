@@ -37,4 +37,25 @@
       <button type="button" class="delete-button" (click)="onDelete()">Delete</button>
     </div>
   }
+  <button type="button" class="view-details-button details-toggle-button" (click)="toggleDetails()">
+    {{ showDetails() ? 'Hide Additional Info' : 'Additional Info' }}
+  </button>
+  @if (showDetails()) {
+    <div class="expense-details">
+      <p>
+        <strong>Description:</strong>
+        {{ expense().description || 'No description available' }}
+      </p>
+
+      @if (expense().references?.length) {
+        <p><strong>References:</strong></p>
+
+        <ul>
+          @for (reference of expense().references; track reference) {
+            <li>{{ reference }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
 </article>

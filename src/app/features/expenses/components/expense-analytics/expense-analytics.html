@@ -1,0 +1,41 @@
+<section class="expense-analytics">
+  <h2>Expense Analytics</h2>
+
+  <div class="analytics-grid">
+    <div class="analytics-card">
+      <span>Total Expenses</span>
+      <strong>{{ totalExpenses() | currency: 'INR' }}</strong>
+    </div>
+
+    <div class="analytics-card">
+      <span>Total Records</span>
+      <strong>{{ expenseCount() }}</strong>
+    </div>
+
+    <div class="analytics-card">
+      <span>Highest Expense</span>
+
+      @if (highestExpense(); as expense) {
+        <strong>{{ expense.title }}</strong>
+        <small>{{ expense.amount | currency: 'INR' }}</small>
+      } @else {
+        <strong>No expenses available</strong>
+      }
+    </div>
+  </div>
+
+  <h3>Category Breakdown</h3>
+
+  @if (categoryBreakdown().length > 0) {
+    <div class="category-list">
+      @for (item of categoryBreakdown(); track item.category) {
+        <div class="category-item">
+          <span>{{ item.category }}</span>
+          <strong>{{ item.amount | currency: 'INR' }}</strong>
+        </div>
+      }
+    </div>
+  } @else {
+    <p>No expense data available.</p>
+  }
+</section>

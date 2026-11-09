@@ -3,7 +3,7 @@ import { ActivatedRouteSnapshot, ResolveFn, Router } from '@angular/router';
 
 import { EMPTY, catchError, tap } from 'rxjs';
 import { Expense } from '../../../shared/models/expense.model';
-import { ExpenseApiService } from '../../../core/services/api/expense-api.service';
+import { ExpenseApiService } from '../data-access/expense-api.service';
 
 export const expenseResolver: ResolveFn<Expense> = (route: ActivatedRouteSnapshot) => {
   const expenseApiService = inject(ExpenseApiService);

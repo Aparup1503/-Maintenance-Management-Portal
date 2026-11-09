@@ -91,28 +91,36 @@ export class MaintenanceDataService {
       flatNumber: 'A-101',
       name: 'Rahul Sharma',
       phone: '9876543210',
+      email: 'rahul.sharma@example.com',
       monthlyMaintenance: 3000,
+      status: 'Active',
     },
     {
       id: 2,
       flatNumber: 'A-102',
       name: 'Priya Das',
       phone: '9876543211',
+      email: 'priya.das@example.com',
       monthlyMaintenance: 3000,
+      status: 'Active',
     },
     {
       id: 3,
       flatNumber: 'B-201',
       name: 'Amit Kumar',
       phone: '9876543212',
+      email: 'amit.kumar@example.com',
       monthlyMaintenance: 3000,
+      status: 'Active',
     },
     {
       id: 4,
       flatNumber: 'B-202',
       name: 'Sneha Patnaik',
       phone: '9876543213',
+      email: 'sneha.patnaik@example.com',
       monthlyMaintenance: 3000,
+      status: 'Active',
     },
   ]);
 
@@ -272,7 +280,24 @@ export class MaintenanceDataService {
   );
 
   // ==========================================
-  // 5. EXPENSE CRUD OPERATIONS
+  // 5. RESIDENT CRUD OPERATIONS
+  // ==========================================
+
+  addResident(resident: Omit<Resident, 'id'>): void {
+    const nextId = this.residents().reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1;
+    this.residents.update((residents) => [...residents, { ...resident, id: nextId }]);
+  }
+
+  updateResident(id: number, updatedResident: Omit<Resident, 'id'>): void {
+    this.residents.update((residents) =>
+      residents.map((resident) =>
+        resident.id === id ? { ...updatedResident, id } : resident,
+      ),
+    );
+  }
+
+  // ==========================================
+  // 6. EXPENSE CRUD OPERATIONS
   // ==========================================
 
   addExpense(expense: Omit<Expense, 'id'>): void {

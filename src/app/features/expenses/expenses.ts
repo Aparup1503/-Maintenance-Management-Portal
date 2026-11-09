@@ -3,14 +3,18 @@ import {
   DestroyRef,
   computed,
   inject,
+  Injector,
   viewChild,
   viewChildren,
   afterNextRender,
   OnInit,
   AfterViewInit,
   signal,
+  effect,
+  EffectRef,
   ElementRef,
   afterRenderEffect,
+  untracked,
 } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormArray, FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -26,18 +30,28 @@ import {
   map,
   finalize,
 } from 'rxjs';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Expense } from '../../shared/models/expense.model';
-import { ExpenseApiService } from '../../core/services/api/expense-api.service';
+import { ExpenseApiService } from './data-access/expense-api.service';
 import { ExpenseCardComponent } from './components/expense-card/expense-card';
-import { ExpenseStoreService } from '../../core/services/state/expense-store.service';
+import { ExpenseStoreService } from './data-access/expense-store.service';
 import { AppCardComponent } from '../../shared/components/app-card/app-card';
 import { notBlankValidator } from '../../shared/validators/not-blank.validator';
+import { uniqueExpenseTitleValidator } from '../../shared/validators/unique-expense-title.validator';
+import { UserRoleService } from '../../core/services/user-role.service';
+import { Title } from '@angular/platform-browser';
+import { ExpenseAnalyticsComponent } from './components/expense-analytics/expense-analytics';
 
 @Component({
   selector: 'app-expenses',
-  imports: [CurrencyPipe, ReactiveFormsModule, ExpenseCardComponent, AppCardComponent],
+  imports: [
+    CurrencyPipe,
+    ReactiveFormsModule,
+    ExpenseCardComponent,
+    AppCardComponent,
+    ExpenseAnalyticsComponent,
+  ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
@@ -53,7 +67,12 @@ export class ExpensesComponent implements OnInit, AfterViewInit {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly expenseStore = inject(ExpenseStoreService);
+  private readonly userRoleService = inject(UserRoleService);
+  private readonly titleService = inject(Title);
+  private categoryTrackingEffect?: EffectRef;
+  private readonly injector = inject(Injector);
 
+  //readonly expenses = this.expenseStateService.expenses;
   // Reads expense data from the shared Expense Store.
   readonly expenses = this.expenseStore.expenses;
 
@@ -65,47 +84,130 @@ export class ExpensesComponent implements OnInit, AfterViewInit {
   // Gets all currently rendered ExpenseCardComponent instances.
   private readonly expenseCards = viewChildren(ExpenseCardComponent);
 
-  // Tracks the Add Expense API request.
-  readonly isSaving = signal(false);
+  // Operation states are managed by the shared Expense Store.
+  readonly isSaving = this.expenseStore.isSaving;
 
-  // Stores the ID of the expense currently being deleted.
-  // This helps us show a loading state for that specific row.
-  readonly deletingExpenseId = signal<string | number | null>(null);
-  //  UI state signals.
-  readonly isLoading = signal(false);
-  readonly errorMessage = signal<string | null>(null);
+  readonly deletingExpenseId = this.expenseStore.deletingExpenseId;
+
+  // Loading and error states are also managed by the store.
+  readonly isLoading = this.expenseStore.isLoading;
+  readonly errorMessage = this.expenseStore.errorMessage;
 
   // Reactive search state
   readonly searchText = signal('');
 
-  // Admin role simulation
-  readonly isAdmin = signal(true);
+  // Exposes the shared role state to the template.
+  readonly isAdmin = this.userRoleService.isAdmin;
 
   // Add Expense form visibility
   readonly showAddForm = signal(false);
+
+  readonly hasUnsavedChanges = signal(false);
+
+  readonly apiSearchResults = signal<Expense[]>([]);
+
+  readonly notification = signal<string | null>(null);
 
   // Converts Angular Router query parameters from an Observable
   // into a Signal so they can be used with Angular's Signals API.
   private readonly queryParamMap = toSignal(this.activatedRoute.queryParamMap);
 
-  // constructor() {
-  //   afterRenderEffect(() => {
-  //     const header = this.pageHeader();
+  readonly searchText$ = toObservable(this.searchText);
 
-  //     if (!header) {
-  //       return;
-  //     }
+  readonly debouncedSearch$ = this.searchText$.pipe(debounceTime(300), distinctUntilChanged());
 
-  //     console.log('Page header:', header.nativeElement);
-  //   });
-  // }
+  constructor() {
+    effect(() => {
+      // This signal IS tracked.
+      const category = this.selectedCategory();
+
+      // This signal is read but NOT tracked.
+      const currentSearch = untracked(() => this.searchText());
+
+      console.log('Category analytics:', {
+        category,
+        currentSearch,
+      });
+    });
+
+    effect(() => {
+      const category = this.selectedCategory();
+
+      console.log('Selected category changed:', category);
+
+      // Keep the browser tab title synchronized with the selected category.
+      // Display a general title when all categories are selected;
+      // otherwise, include the currently selected category in the title.
+      document.title =
+        category === 'All'
+          ? 'Expenses | Maintenance Portal'
+          : `Expenses - ${category} | Maintenance Portal`;
+    });
+
+    effect((onCleanup) => {
+      // Angular tracks notification as a dependency.
+      const message = this.notification();
+
+      if (!message) {
+        return;
+      }
+
+      // Automatically clear the notification after 5 seconds.
+      const timeoutId = setTimeout(() => {
+        this.notification.set(null);
+      }, 5000);
+
+      // Register cleanup logic to cancel the previous timer
+      // before this effect reruns or when the effect is destroyed.
+      // This prevents outdated timers from clearing newer notifications.
+      onCleanup(() => {
+        clearTimeout(timeoutId);
+      });
+    });
+
+    this.expenseForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      // Mark the form as changed after the user modifies a value.
+      this.hasUnsavedChanges.set(this.expenseForm.dirty);
+    });
+    this.expenseForm.statusChanges.subscribe((status) => {
+      console.log('Form status:', status);
+    });
+
+    // this.debouncedSearch$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((searchText) => {
+    //   console.log('Debounced search:', searchText);
+    // });
+
+    this.searchSubject
+      .pipe(
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap((searchText) => this.expenseApiService.searchExpenses(searchText)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (expenses) => {
+          console.log('Search results:', expenses);
+
+          // We'll connect these results to the UI in the next step.
+        },
+        error: (error) => {
+          console.error('Search failed:', error);
+        },
+      });
+
+    this.searchExpenses$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((expenses) => {
+      this.apiSearchResults.set(expenses);
+
+      console.log('API search results:', expenses);
+    });
+  }
 
   // Emits search text whenever the user changes the search input.
-  //private readonly searchSubject = new Subject<string>();
+  private readonly searchSubject = new Subject<string>();
 
   ngOnInit(): void {
     // Load expenses when the feature is initialized.
-    this.loadExpenses();
+    this.expenseStore.loadExpenses();
   }
 
   ngAfterViewInit(): void {
@@ -116,83 +218,17 @@ export class ExpensesComponent implements OnInit, AfterViewInit {
     return this.expenseCards().length;
   }
 
-  loadExpenses(): void {
-    // Update the UI to show the loading state.
-    this.isLoading.set(true);
-
-    // Clear any previous error before making a new request.
-    this.errorMessage.set(null);
-
-    this.expenseApiService
-      .getExpenses()
-      .pipe(
-        map((expenses) =>
-          [...expenses].sort(
-            (a, b) => new Date(b.spentAt).getTime() - new Date(a.spentAt).getTime(),
-          ),
-        ),
-        // Performs a side effect without changing the API response.
-        tap((expenses) => {
-          console.log('Expenses loaded:', expenses.length);
-        }),
-
-        // Handles API errors inside the Observable pipeline.
-        catchError((error) => {
-          console.error('Unable to load expenses.', error);
-
-          this.errorMessage.set('Unable to load expenses. Please try again.');
-
-          // Return an empty array so the Observable can complete safely.
-          return of([]);
-        }),
-        // Runs when the Observable completes or errors.
-        // Perfect for resetting loading indicators.
-        finalize(() => {
-          this.isLoading.set(false);
-        }),
-        // Automatically unsubscribes when this component is destroyed.
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((expenses) => {
-        //Store the API response in the shared state.
-        this.expenseStore.setExpenses(expenses);
-      });
-  }
-
   deleteExpense(expense: Expense): void {
-    // Ask the user before permanently deleting data.
+    // The component handles user interaction.
     const confirmed = window.confirm(`Are you sure you want to delete "${expense.title}"?`);
 
     if (!confirmed) {
       return;
     }
 
-    //Store the ID so the UI knows which expense is being deleted.
-    this.deletingExpenseId.set(expense.id);
-
-    this.errorMessage.set(null);
-
-    this.expenseApiService
-      .deleteExpense(expense.id)
-      .pipe(
-        // Automatically clean up the subscription
-        // when the component is destroyed.
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => {
-          // Remove the deleted expense from the local Signal.
-          // We use filter() to create a new immutable array.
-          this.expenseStore.removeExpense(expense.id);
-          this.deletingExpenseId.set(null);
-        },
-
-        error: (error) => {
-          console.error('Unable to delete expense.', error);
-          this.errorMessage.set('Unable to delete expense. Please try again.');
-          this.deletingExpenseId.set(null);
-        },
-      });
+    // The store handles the API call and shared state update.
+    this.expenseStore.deleteExpense(expense.id);
+    this.notification.set(`Expense ${expense.id} deleted successfully!`);
   }
 
   readonly editingExpenseId = signal<string | number | null>(null);
@@ -208,16 +244,26 @@ export class ExpensesComponent implements OnInit, AfterViewInit {
     'Miscellaneous',
   ];
 
+  //Typed Reactive Forms
   readonly expenseForm = this.fb.nonNullable.group({
-    title: [
-      '',
-      [
+    // Title field with synchronous and asynchronous validation.
+    title: this.fb.nonNullable.control('', {
+      // Runs immediately whenever the control value changes.
+      validators: [
         Validators.required,
-        notBlankValidator(), // Custom validator to prevent whitespace-only input.
+        notBlankValidator(),
         Validators.minLength(3),
         Validators.maxLength(100),
       ],
-    ],
+
+      // Checks whether the expense title already exists.
+      asyncValidators: [
+        uniqueExpenseTitleValidator(this.expenseApiService, () => this.editingExpenseId()),
+      ],
+
+      // Runs validation after the user leaves the title field.
+      updateOn: 'blur',
+    }),
 
     category: ['Electricuty', Validators.required],
 
@@ -227,7 +273,7 @@ export class ExpensesComponent implements OnInit, AfterViewInit {
 
     description: ['', Validators.maxLength(250)],
 
-    // Dynamic list of supporting references that users can add or remove.
+    // Dynamic list of non-nullable string controls.
     references: this.fb.nonNullable.array<string>([]),
   });
   // Available categories
@@ -236,12 +282,33 @@ export class ExpensesComponent implements OnInit, AfterViewInit {
     ...new Set(this.expenses().map((expense) => expense.category)),
   ]);
 
+  readonly searchExpenses$ = toObservable(this.searchText).pipe(
+    debounceTime(300),
+    distinctUntilChanged(),
+
+    switchMap((searchText) => {
+      const search = searchText.trim();
+
+      // If search is empty, don't call the API.
+      if (!search) {
+        return of([]);
+      }
+
+      return this.expenseApiService.searchExpenses(search).pipe(
+        catchError((error) => {
+          console.error('Unable to search expenses.', error);
+          return of([]);
+        }),
+      );
+    }),
+  );
   onSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
 
     // Update the local UI search state.
     // filteredExpenses() automatically recalculates.
     this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   onCategoryChange(event: Event): void {
@@ -326,7 +393,7 @@ export class ExpensesComponent implements OnInit, AfterViewInit {
       description: '',
     });
     this.references.clear();
-
+    this.editingExpenseId.set(null);
     this.showAddForm.set(true);
     // Scroll to the newly opened form.
     setTimeout(() => {
@@ -362,6 +429,9 @@ export class ExpensesComponent implements OnInit, AfterViewInit {
       );
     });
 
+    // Run the async validator using the current expense ID.
+    this.expenseForm.controls.title.updateValueAndValidity();
+
     this.showAddForm.set(true);
 
     // Schedules the scroll operation to run in a later JavaScript task.
@@ -391,18 +461,21 @@ export class ExpensesComponent implements OnInit, AfterViewInit {
   closeAddExpenseForm(): void {
     this.showAddForm.set(false);
     this.editingExpenseId.set(null);
-    this.expenseForm.reset({
-      title: '',
-      category: 'Electricity',
-      amount: 0,
-      spentAt: new Date().toISOString().slice(0, 10),
-      description: '',
-    });
+    // this.expenseForm.reset({
+    //   title: '',
+    //   category: 'Electricity',
+    //   amount: 0,
+    //   spentAt: new Date().toISOString().slice(0, 10),
+    //   description: '',
+    // });
+    this.expenseForm.reset();
+    this.hasUnsavedChanges.set(false);
+    this.expenseForm.reset();
+    this.references.clear();
   }
 
   //$ Submit expense
   onSubmitExpense(): void {
-    // Stop submission if the form is invalid.
     if (this.expenseForm.invalid) {
       this.expenseForm.markAllAsTouched();
       return;
@@ -410,54 +483,107 @@ export class ExpensesComponent implements OnInit, AfterViewInit {
 
     const formValue = this.expenseForm.getRawValue();
 
-    // Prepare the data that will be sent to the API.
-
     const expenseData = {
       title: formValue.title.trim(),
       category: formValue.category,
       amount: formValue.amount,
       spentAt: formValue.spentAt,
       description: formValue.description.trim(),
-
-      // Remove extra spaces and exclude empty reference values.
-      references: formValue.references
-        .map((reference) => reference.trim())
-        .filter((reference) => reference.length > 0),
+      references: formValue.references.map((reference) => reference.trim()).filter(Boolean),
     };
 
-    const expenseId = this.editingExpenseId();
-    // Set the saving state while the API request is in progress.
-    this.isSaving.set(true);
-    this.errorMessage.set(null);
+    const editingId = this.editingExpenseId();
 
-    // Choose POST for a new expense or PATCH for an existing expense.
-    const request$ =
-      expenseId !== null
-        ? this.expenseApiService.updateExpense(expenseId, expenseData)
-        : this.expenseApiService.addExpense(expenseData);
-
-    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (savedExpense) => {
-        if (expenseId !== null) {
-          // Replace the updated expense in the Signal.
-          this.expenseStore.updateExpense(savedExpense);
-        } else {
-          // Add the newly created expense to the Signal.
-          this.expenseStore.addExpense(savedExpense);
-        }
-
-        this.isSaving.set(false);
-
-        // Close and reset the form after successful saving.
+    if (editingId !== null) {
+      // EDIT: Component delegates the API operation to the store.
+      this.expenseStore.saveExpense(editingId, expenseData, () => {
+        this.notification.set('Expense updated successfully!');
         this.closeAddExpenseForm();
-      },
-      error: (error) => {
-        console.error('Unable to add expense.', error);
+      });
+    } else {
+      // ADD: Component delegates the API operation to the store.
+      this.expenseStore.createExpense(expenseData, () => {
+        this.notification.set('Expense added successfully!');
+        this.closeAddExpenseForm();
+      });
+    }
+  }
 
-        this.errorMessage.set('Unable to add expense. Please try again.');
+  /**
+   * Checks whether the user can safely leave the Expenses page.
+   */
+  canDeactivate(): boolean {
+    // No form is currently open, so navigation is safe.
+    if (!this.showAddForm()) {
+      return true;
+    }
 
-        this.isSaving.set(false);
+    // The form has not been modified, so navigation is safe.
+    if (!this.expenseForm.dirty) {
+      return true;
+    }
+
+    // Ask the user before discarding unsaved changes.
+    return window.confirm('You have unsaved changes. Are you sure you want to leave this page?');
+  }
+
+  startCategoryTracking(): void {
+    // Prevent creating multiple tracking effects.
+    if (this.categoryTrackingEffect) {
+      return;
+    }
+
+    this.categoryTrackingEffect = effect(
+      () => {
+        console.log('Category tracking:', this.selectedCategory());
       },
-    });
+      {
+        injector: this.injector,
+      },
+    );
+  }
+
+  stopCategoryTracking(): void {
+    this.categoryTrackingEffect?.destroy();
+
+    this.categoryTrackingEffect = undefined;
+
+    console.log('Category tracking stopped.');
+  }
+
+  demonstrateImmutableUpdate(): void {
+    const originalExpense = {
+      id: 999,
+      title: 'Demo Expense',
+      amount: 1000,
+    };
+
+    // ❌ Mutation: same object reference
+    const mutatedExpense = originalExpense;
+    mutatedExpense.amount = 2000;
+
+    console.log('Mutation - same reference:', originalExpense === mutatedExpense);
+
+    // Reset example with a fresh object.
+    const anotherExpense = {
+      id: 999,
+      title: 'Demo Expense',
+      amount: 1000,
+    };
+
+    // ✅ Immutable update: new object reference
+    const immutableExpense = {
+      ...anotherExpense,
+      amount: 2000,
+    };
+
+    console.log('Immutable - same reference:', anotherExpense === immutableExpense);
+
+    console.log('Original:', anotherExpense);
+    console.log('Updated:', immutableExpense);
+  }
+
+  refreshExpenses(): void {
+    this.expenseStore.loadExpenses();
   }
 }

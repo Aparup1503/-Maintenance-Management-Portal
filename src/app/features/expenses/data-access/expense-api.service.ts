@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { APP_CONFIG } from '../../config/app-config.token';
+import { APP_CONFIG } from '../../../core/config/app-config.token';
 
 //~Adjust this import path to match the Expense model already present in your project.
 import { Expense } from '../../../shared/models/expense.model';

@@ -4,6 +4,7 @@
       <h1>Maintenance Dashboard</h1>
       <p>Overview of society maintenance and financial activity.</p>
     </div>
+    <a class="manage-residents-link" routerLink="/residents">Manage Residents</a>
   </header>
 
   <section class="dashboard-cards">
@@ -106,11 +107,12 @@
           @for (payment of recentPayments(); track payment.id) {
             <div class="activity-item">
               <div>
-                <strong>
-                  {{ getResidentName(payment.residentId) }}
-                </strong>
+                <strong>{{ getResidentName(payment) }}</strong>
 
-                <p>Flat {{ getFlatNumber(payment.residentId) }} · {{ payment.paymentMode }}</p>
+                <p>
+                  Flat {{ getFlatNumber(payment) }} ·
+                  {{ payment.paymentMode ?? payment.paymentMethod ?? '—' }}
+                </p>
               </div>
 
               <div class="activity-amount">
@@ -119,7 +121,7 @@
                 </strong>
 
                 <span>
-                  {{ payment.spentAt | date: 'dd MMM, h:mm a' }}
+                  {{ (payment.spentAt || payment.paymentDate) | date: 'dd MMM, h:mm a' }}
                 </span>
               </div>
             </div>

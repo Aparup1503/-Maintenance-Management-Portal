@@ -1,4 +1,4 @@
-import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -13,6 +13,7 @@ import { Expense } from '../../../../shared/models/expense.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExpenseCardComponent {
+  readonly showDetails = signal(false);
   // Receives the expense data from the parent component.
   // The child is responsible only for displaying this data.
   expense = input.required<Expense>();
@@ -34,5 +35,9 @@ export class ExpenseCardComponent {
   onDelete(): void {
     // Send the selected expense back to the parent.
     this.deleteExpense.emit(this.expense());
+  }
+
+  toggleDetails(): void {
+    this.showDetails.update((currentValue) => !currentValue);
   }
 }

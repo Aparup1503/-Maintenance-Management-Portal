@@ -51,14 +51,6 @@
       "description": "Lift maintenance and servicing"
     },
     {
-      "title": "Sonu Giri",
-      "category": "Miscellaneous",
-      "amount": 1000,
-      "spentAt": "2026-11-05",
-      "description": "Additional Misc",
-      "id": "XkQwaBNTuHk"
-    },
-    {
       "title": "GITA",
       "category": "Electricity",
       "amount": 3899,
@@ -67,31 +59,28 @@
       "id": "AEMtcIUTTUY"
     },
     {
-      "title": "Aparup Giri",
-      "category": "Miscellaneous",
-      "amount": 2600,
-      "spentAt": "2026-11-05",
-      "description": "Additional Services",
-      "id": "6RXj0nQ10Sc"
-    },
-    {
-      "title": "Maruti",
+      "title": "Marutiiii",
       "category": "Cleaning",
-      "amount": 1200,
-      "spentAt": "2026-11-06",
-      "description": "Cleaning Facilities",
-      "id": "n-YCJRklnhs"
+      "amount": 1900,
+      "spentAt": "2026-11-07",
+      "description": "Cleaning Facilitiesssssffffffff",
+      "id": "n-YCJRklnhs",
+      "references": [
+        "INV 2345",
+        "ION344"
+      ]
     },
     {
-      "title": "New CCTV",
+      "title": "New CCTVV",
       "category": "Maintenance",
-      "amount": 12000,
+      "amount": 14000,
       "spentAt": "2026-11-06",
-      "description": "CCTV Required",
-      "id": "gzPtik2jNZE"
+      "description": "CCTV Required fff",
+      "id": "gzPtik2jNZE",
+      "references": []
     },
     {
-      "title": "Aparup Giri",
+      "title": "Aparup Kumar Giri",
       "category": "Repairs",
       "amount": 2000,
       "spentAt": "2026-11-06",
@@ -100,32 +89,55 @@
         "INV2345"
       ],
       "id": "-NW-QybW5JQ"
+    },
+    {
+      "title": "Dipu Servicing",
+      "category": "Miscellaneous",
+      "amount": 3955,
+      "spentAt": "2026-11-09",
+      "description": "",
+      "references": [
+        "INV-2026-12345"
+      ],
+      "id": "LJpaOTMaOQU"
     }
   ],
   "bills": [
     {
-      "id": "1",
+      "id": 1,
+      "residentId": 1,
       "flatNumber": "A-101",
       "residentName": "Rahul Sharma",
       "month": "October 2026",
       "amount": 3000,
-      "status": "Paid"
+      "paidAmount": 3000,
+      "dueDate": "2026-10-10",
+      "status": "Paid",
+      "generatedAt": "2026-10-01T00:00:00.000Z"
     },
     {
-      "id": "2",
+      "id": 2,
+      "residentId": 2,
       "flatNumber": "A-102",
       "residentName": "Priya Das",
       "month": "October 2026",
       "amount": 3000,
-      "status": "Pending"
+      "paidAmount": 0,
+      "dueDate": "2026-10-10",
+      "status": "Pending",
+      "generatedAt": "2026-10-01T00:00:00.000Z"
     },
     {
-      "id": "3",
+      "id": 3,
+      "residentId": 3,
       "flatNumber": "B-201",
       "residentName": "Amit Kumar",
       "month": "October 2026",
       "amount": 3000,
-      "status": "Overdue"
+      "paidAmount": 0,
+      "dueDate": "2026-10-10",
+      "status": "Overdue",
+      "generatedAt": "2026-10-01T00:00:00.000Z"
     }
   ],
   "payments": [

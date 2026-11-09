@@ -1,3 +1,9 @@
+@if (notification(); as message) {
+  <div class="success-message">
+    {{ message }}
+  </div>
+}
+<button type="button" (click)="demonstrateImmutableUpdate()">Test Immutable Update</button>
 @if (isLoading()) {
   <div class="loading-state">Loading expenses...</div>
 } @else if (errorMessage()) {
@@ -6,10 +12,16 @@
     <div>
       <h2>We couldn't load expenses</h2>
       <p>{{ errorMessage() }}</p>
-      <button type="button" class="retry-button" (click)="loadExpenses()">Try again</button>
+      <button type="button" class="retry-button" (click)="expenses()">Try again</button>
     </div>
   </div>
 } @else {
+  <button type="button" (click)="startCategoryTracking()">Start Category Tracking</button>
+
+  <button type="button" (click)="stopCategoryTracking()">Stop Category Tracking</button>
+  <button type="button" (click)="refreshExpenses()" [disabled]="isLoading()">
+    {{ isLoading() ? 'Refreshing...' : 'Refresh Expenses' }}
+  </button>
   <section #pageHeader class="expenses-page">
     <!-- Page Header -->
     <header class="page-header">
@@ -97,6 +109,12 @@
                     Minimum 3 characters required.
                   } @else if (expenseForm.controls.title.errors?.['maxlength']) {
                     Maximum 100 characters allowed.
+                  } @else if (expenseForm.controls.title.pending) {
+                    <small class="validation-message"> Checking expense title... </small>
+                  } @else if (expenseForm.controls.title.errors?.['duplicateTitle']) {
+                    <small class="error-message" role="alert">
+                      An expense with this title already exists.
+                    </small>
                   }
                 </small>
               }
@@ -225,6 +243,9 @@
         </form>
       </section>
     }
+    @if (hasUnsavedChanges()) {
+      <p class="unsaved-changes-message">You have unsaved changes.</p>
+    }
 
     <!-- Search and Filter -->
     <section class="expense-toolbar">
@@ -277,5 +298,30 @@
         }
       </div>
     </section>
+    <!--
+  Loads the analytics component when its placeholder
+  enters the browser viewport.
+-->
+    @defer (on viewport) {
+      <app-expense-analytics [expenses]="expenses()" />
+    } @placeholder {
+      <!--
+    Displayed before Angular starts loading the
+    deferred analytics component.
+  -->
+      <div class="analytics-placeholder">
+        <p>Expense analytics will load when you scroll here.</p>
+      </div>
+    } @loading {
+      <!-- Displayed while the deferred component is loading. -->
+      <div class="analytics-placeholder">
+        <p>Loading expense analytics...</p>
+      </div>
+    } @error {
+      <!-- Displayed if Angular cannot load the deferred dependencies. -->
+      <div class="analytics-placeholder">
+        <p>Unable to load expense analytics.</p>
+      </div>
+    }
   </section>
 }
